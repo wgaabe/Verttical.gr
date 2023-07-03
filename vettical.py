@@ -170,10 +170,16 @@ class SistemaControleVendas:
         nome = self.entry_nome.get()
         valor = self.entry_valor.get()
         quantidade = self.entry_quantidade.get()
+        #venda_cortesia = self.verifica_venda_cortesia.get()
+
 
         if nome and valor and quantidade:
             if self.is_float(valor) and self.is_int(quantidade):
-                produto = Produto(self.data, nome, float(valor), int(quantidade), 0, 0)
+                data_hora_atual = datetime.now()
+                data = data_hora_atual.strftime("%d/%m/%Y")
+                hora = data_hora_atual.strftime("%H:%M:%S")
+
+                produto = Produto(data, hora, nome, float(valor), int(quantidade), 0, 0)
                 self.produtos.append(produto)
                 self.limpar_campos()
                 self.atualizar_combobox_produtos()
@@ -329,8 +335,9 @@ class SistemaControleVendas:
         if self.arquivo:
             with open(self.arquivo, 'w', newline='') as arquivo_csv:
                 writer = csv.writer(arquivo_csv)
-                data = datetime.datetime.now().strftime('%d/%m/%Y')  # Obtém a data atual no formato dd/mm/aaaa
-                hora = datetime.datetime.now().strftime('%H:%M:%S')  # Obtém a hora atual no formato HH:MM:SS
+                data_hora_atual = datetime.now()
+                data = data_hora_atual.strftime("%d/%m/%Y")
+                hora = data_hora_atual.strftime("%H:%M:%S")
                 writer.writerow(["Data", "Hora", "Nome", "Valor Venda", "Quantidade Estoque", "Quantidade Vendida", "Venda Cortesia"])
                 for produto in self.produtos:
                     data = produto.data
@@ -354,12 +361,13 @@ class SistemaControleVendas:
                 next(reader)  # Pular o cabeçalho do CSV
                 for linha in reader:
                     data = linha[0]
-                    nome = linha[1]
-                    valor = float(linha[2])
-                    quantidade = int(linha[3])
-                    vendas = int(linha[4])
-                    cortesia = int(linha[5])
-                    produto = Produto(data, nome, valor, quantidade, vendas, cortesia)
+                    hora = linha[1]
+                    nome = linha[2]
+                    valor = float(linha[3])
+                    quantidade = int(linha[4])
+                    vendas = int(linha[5])
+                    cortesia = int(linha[6])
+                    produto = Produto(data, hora, nome, valor, quantidade, vendas, cortesia)
                     self.produtos.append(produto)
 
             # Atualizar os valores totais
