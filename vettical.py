@@ -7,14 +7,14 @@ import os
 
 
 class Produto:
-    def __init__(self, data, nome_produto, valor_venda, quantidade_estoque, quantidade_vendida, venda_cortesia):
+    def __init__(self, data, hora, nome_produto, valor_venda, quantidade_estoque, quantidade_vendida, venda_cortesia):
         self.data = data
+        self.hora = hora
         self.nome_produto = nome_produto
         self.valor_venda = valor_venda
         self.quantidade_estoque = quantidade_estoque
         self.quantidade_vendida = quantidade_vendida
         self.venda_cortesia = venda_cortesia
-        #
 
 
 class SistemaControleVendas:
@@ -22,14 +22,15 @@ class SistemaControleVendas:
         self.produtos = []
         self.valor_total_vendas = 0.0  # Variável para armazenar o valor total das vendas
         self.quantidade_vendida = 0
-        self.vendas_cortesia = 0
+        self.venda_cortesia = 0
+        #self.verifica_venda_cortesia = False
         self.data = None
         self.arquivo = None
     
 
         self.janela = tk.Tk()
         self.janela.title("Controle de Vendas")
-        self.venda_cortesia = tk.BooleanVar()
+        self.verifica_venda_cortesia = tk.BooleanVar()
         self.frame_lista_produtos = None
 
         self.frame_arquivos_status = tk.Frame(self.janela)
@@ -128,7 +129,7 @@ class SistemaControleVendas:
         self.checkbutton_venda_cortesia = tk.Checkbutton(
         self.frame_venda,
         text="Venda Cortesia",
-        variable=self.venda_cortesia
+        variable=self.verifica_venda_cortesia
         )
         self.checkbutton_venda_cortesia.grid(row=3, column=0, padx=5, pady=5)    
             
@@ -155,7 +156,7 @@ class SistemaControleVendas:
         self.label_valor_total_vendas = tk.Label(self.frame_lista_produtos, text="Valor Total das Vendas: R$ 0.00")
         self.label_valor_total_vendas.grid(row=2, column=0, padx=5, pady=5)
 
-        self.btn_gerar_relatorio = tk.Button(self.frame_lista_produtos, text="Gerar Relatório", command=self.gerar_relatorio)
+        self.btn_gerar_relatorio = tk.Button(self.frame_lista_produtos, text="Gerar Relatório", command=None)
         self.btn_gerar_relatorio.grid(row=3, column=0, padx=5, pady=5)
 
         self.atualizar_combobox_produtos()
@@ -234,7 +235,7 @@ class SistemaControleVendas:
         if self.arquivo:
             produto_index = self.combobox_produtos_venda.current()
             quantidade_venda = self.entry_quantidade_venda.get()
-            venda_cortesia = self.venda_cortesia.get()
+            #venda_cortesia = self.checkbutton_venda_cortesia.get()  # Obtém o estado da caixa de seleção
 
             if produto_index >= 0 and quantidade_venda:
                 if self.is_int(quantidade_venda):
@@ -247,10 +248,10 @@ class SistemaControleVendas:
                         produto.quantidade_estoque -= quantidade_venda
                         produto.quantidade_vendida += quantidade_venda
                         self.quantidade_vendida += quantidade_venda
-                        if not venda_cortesia:
-                            self.valor_total_vendas += produto.valor_venda * quantidade_venda
+                        if self.verifica_venda_cortesia.get() and quantidade_venda > 0:  # Verifica se a opção "Venda Cortesia" está marcada e a quantidade vendida é maior que zero
+                            produto.venda_cortesia += 1
                         else:
-                            self.vendas_cortesia += 1
+                            self.valor_total_vendas += produto.valor_venda * quantidade_venda
                         self.atualizar_combobox_produtos()
                         self.exibir_lista_produtos()
                         self.exibir_valor_total_vendas()
@@ -267,7 +268,6 @@ class SistemaControleVendas:
                                 quantidade = produto.quantidade_estoque
                                 vendas_cortesia = produto.venda_cortesia
                                 writer.writerow([nome, valor, quantidade, vendas_cortesia])
-                                
 
                     else:
                         tk.messagebox.showerror("Erro de Venda", "Quantidade indisponível em estoque!")
@@ -277,6 +277,8 @@ class SistemaControleVendas:
                 tk.messagebox.showerror("Erro de Venda", "Selecione um produto e informe a quantidade!")
         else:
             tk.messagebox.showerror("Erro", "Nenhum arquivo CSV selecionado!")
+
+
 
    
 
@@ -291,13 +293,14 @@ class SistemaControleVendas:
     def exibir_lista_produtos(self):
         self.text_lista_produtos.delete("1.0", tk.END)
         for produto in self.produtos:
-            texto = f"Nome: {produto.nome_produto}\n"  # Acesso direto ao atributo nome_produto
-            texto += f"Valor: R$ {produto.valor_venda}\n"  # Acesso direto ao atributo valor_venda
-            texto += f"Quantidade: {produto.quantidade_estoque}\n"  # Acesso direto ao atributo quantidade
-            texto += f"Quantidade Vendida: {produto.quantidade_vendida}\n"  # Acesso direto ao atributo quantidade_vendida
-            texto += f"Venda Cortesia: {'Sim' if produto.venda_cortesia else 'Não'}\n"  # Acesso direto ao atributo venda_cortesia
+            texto = f"Nome: {produto.nome_produto}\n"
+            texto += f"Valor: R$ {produto.valor_venda}\n"
+            texto += f"Quantidade em Estoque: {produto.quantidade_estoque}\n"
+            texto += f"Quantidade Vendida: {produto.quantidade_vendida}\n"
+            texto += f"Vendas Cortesia: {produto.venda_cortesia}\n"  # Acesso direto ao atributo venda_cortesia
             texto += "=========================\n"
             self.text_lista_produtos.insert(tk.END, texto)
+
 
     def preencher_campos_edicao(self, event):
         produto_index = self.combobox_produtos_editar.current()
@@ -322,68 +325,30 @@ class SistemaControleVendas:
         self.entry_valor_editar.delete(0, tk.END)
         self.entry_quantidade_editar.delete(0, tk.END)
 
-    def gerar_relatorio(self):
-        nome_arquivo = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Arquivo de Texto", "*.txt")])
-        if nome_arquivo:
-            with open(nome_arquivo, 'w') as arquivo_txt:
-                arquivo_txt.write("Relatório de Vendas\n\n")
-                arquivo_txt.write(f"Data do Relatório: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n")
-                arquivo_txt.write(f"Quantidade Total Vendida: {self.quantidade_vendida}\n")
-                arquivo_txt.write(f"Valor Total das Vendas: R$ {self.valor_total_vendas:.2f}\n")
-                arquivo_txt.write("\n")
-                arquivo_txt.write("Detalhes dos Produtos Vendidos:\n\n")
-                for produto in self.produtos:
-                    if 'quantidade_vendida' in produto:
-                        nome_produto = produto["nome"]
-                        quantidade_vendida = produto["quantidade_vendida"]
-                        arquivo_txt.write(f"Nome: {nome_produto} - Quantidade Vendida: {quantidade_vendida}\n")
-            tk.messagebox.showinfo("Geração de Relatório", "Relatório gerado com sucesso!")
-    
     def atualizar_arquivo_csv(self):
         if self.arquivo:
             with open(self.arquivo, 'w', newline='') as arquivo_csv:
                 writer = csv.writer(arquivo_csv)
-                writer.writerow(["Data", "Nome", "Valor Venda", "Quantidade Estoque", "Quantidade Vendida", "Venda Cortesia"])
+                data = datetime.datetime.now().strftime('%d/%m/%Y')  # Obtém a data atual no formato dd/mm/aaaa
+                hora = datetime.datetime.now().strftime('%H:%M:%S')  # Obtém a hora atual no formato HH:MM:SS
+                writer.writerow(["Data", "Hora", "Nome", "Valor Venda", "Quantidade Estoque", "Quantidade Vendida", "Venda Cortesia"])
                 for produto in self.produtos:
                     data = produto.data
+                    hora = produto.hora
                     nome = produto.nome_produto
                     valor = produto.valor_venda
                     quantidade = produto.quantidade_estoque
                     vendas = produto.quantidade_vendida
                     cortesia = produto.venda_cortesia
-                    writer.writerow([data, nome, valor, quantidade, vendas, cortesia])
+                    writer.writerow([data, hora, nome, valor, quantidade, vendas, cortesia])
         else:
             tk.messagebox.showerror("Erro", "Nenhum arquivo selecionado!")
 
-    def exibir_caminho_arquivo(self, caminho):
-        self.arquivo = caminho
-        # Exibe o caminho do arquivo em uma label
-        estilo_caminho_arquivo = ("Arial", 8, "bold")
-        self.label_caminho_arquivo.config(text="Caminho do arquivo: " + caminho)
-
-    def gerar_relatorio(self):
-        nome_arquivo = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Arquivo de Texto", "*.txt")])
-        if nome_arquivo:
-            with open(nome_arquivo, 'w') as arquivo_txt:
-                arquivo_txt.write("Relatório de Vendas\n\n")
-                arquivo_txt.write(f"Data do Relatório: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n")
-                arquivo_txt.write(f"Quantidade Total Vendida: {self.quantidade_vendida}\n")
-                arquivo_txt.write(f"Valor Total das Vendas: R$ {self.valor_total_vendas:.2f}\n")
-                arquivo_txt.write("\n")
-                arquivo_txt.write("Detalhes dos Produtos Vendidos:\n\n")
-                for produto in self.produtos:
-                    if 'quantidade_vendida' in produto:
-                        nome_produto = produto["nome"]
-                        quantidade_vendida = produto["quantidade_vendida"]
-                        arquivo_txt.write(f"Nome: {nome_produto} - Quantidade Vendida: {quantidade_vendida}\n")
-            tk.messagebox.showinfo("Geração de Relatório", "Relatório gerado com sucesso!")
-        
-    import csv
 
     def carregar_periodo(self):
-        self.arquivo = filedialog.askopenfilename(filetypes=[("Arquivo CSV", "*.csv")])
-        if self.arquivo:
-            with open(self.arquivo, 'r') as arquivo_csv:
+        arquivo = filedialog.askopenfilename(filetypes=[("Arquivo CSV", "*.csv")])
+        if arquivo:
+            with open(arquivo, 'r') as arquivo_csv:
                 reader = csv.reader(arquivo_csv)
                 self.produtos.clear()  # Limpar a lista de produtos existentes
                 next(reader)  # Pular o cabeçalho do CSV
@@ -403,33 +368,46 @@ class SistemaControleVendas:
             self.vendas_cortesia = sum(produto.venda_cortesia for produto in self.produtos)
 
             # Exibir a lista de produtos
-            self.exibir_produtos()
+            self.exibir_lista_produtos()
+
+            # Exibir o caminho do arquivo
+            self.exibir_diretorio_arquivo(arquivo)
+
+            self.atualizar_combobox_produtos()
 
         else:
             tk.messagebox.showerror("Erro", "Nenhum arquivo selecionado!")
 
     def gerar_periodo(self):
-        self.arquivo = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("Arquivo CSV", "*.csv")])
-        if self.arquivo:
-            with open(self.arquivo, 'w', newline='') as arquivo_csv:
+        arquivo = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("Arquivo CSV", "*.csv")])
+        if arquivo:
+            with open(arquivo, 'w', newline='') as arquivo_csv:
                 writer = csv.writer(arquivo_csv)
-                writer.writerow(["Data", "Nome", "Valor Venda", "Quantidade Estoque", "Quantidade Vendida", "Venda Cortesia"])
+                writer.writerow(["Data","Hora", "Nome", "Valor Venda", "Quantidade Estoque", "Quantidade Vendida", "Venda Cortesia"])
                 for produto in self.produtos:
                     data = produto.data
+                    hora = produto.hora
                     nome = produto.nome_produto
                     valor = produto.valor_venda
                     quantidade = produto.quantidade_estoque
                     vendas = produto.quantidade_vendida
                     cortesia = produto.venda_cortesia
-                    writer.writerow([data, nome, valor, quantidade, vendas, cortesia])
+                    writer.writerow([data, hora, nome, valor, quantidade, vendas, cortesia])
+
+            # Exibir o caminho do arquivo
+            self.exibir_diretorio_arquivo(arquivo)
+
         else:
             tk.messagebox.showerror("Erro", "Nenhum arquivo selecionado!")
 
     def abrir_diretorio(self, event):
-        # Abre o diretório correspondente ao caminho do arquivo
-        caminho_arquivo = self.label_caminho_arquivo.cget("text").replace("Caminho do arquivo: ", "")
-        if os.path.exists(caminho_arquivo):
-            os.startfile(os.path.dirname(caminho_arquivo))
+        if self.arquivo:
+            pasta = os.path.dirname(self.arquivo)  # Obtém o diretório do arquivo
+            os.startfile(pasta)
+
+    def exibir_diretorio_arquivo(self, caminho):
+        self.arquivo = caminho
+        self.label_caminho_arquivo.config(text="Caminho do arquivo: " + caminho)
 
 
     def is_float(self, value):
