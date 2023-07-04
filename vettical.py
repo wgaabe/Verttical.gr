@@ -177,7 +177,7 @@ class SistemaControleVendas:
             if self.is_float(valor) and self.is_int(quantidade):
                 data_hora_atual = datetime.now()
                 data = data_hora_atual.strftime("%d/%m/%Y")
-                hora = data_hora_atual.strftime("%H:%M:%S")
+                hora = data_hora_atual.strftime("%H:%M")
 
                 produto = Produto(data, hora, nome, float(valor), int(quantidade), 0, 0)
                 self.produtos.append(produto)
@@ -337,7 +337,7 @@ class SistemaControleVendas:
                 writer = csv.writer(arquivo_csv)
                 data_hora_atual = datetime.now()
                 data = data_hora_atual.strftime("%d/%m/%Y")
-                hora = data_hora_atual.strftime("%H:%M:%S")
+                hora = data_hora_atual.strftime("%H:%M")
                 writer.writerow(["Data", "Hora", "Nome", "Valor Venda", "Quantidade Estoque", "Quantidade Vendida", "Venda Cortesia"])
                 for produto in self.produtos:
                     data = produto.data
