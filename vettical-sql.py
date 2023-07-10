@@ -18,21 +18,6 @@ class Produto:
         self.quantidade_vendida = quantidade_vendida
         self.venda_cortesia = venda_cortesia
 
-# Conectar ao banco de dados (ou criar um novo se não existir)
-conexao = sqlite3.connect('vertticalgr.db')
-cursor = conexao.cursor()
-
-# Importar o script de criação das tabelas
-with open('verttical_db.sql', 'r') as arquivo_sql:
-    script_sql = arquivo_sql.read()
-
-# Executar o script de criação das tabelas
-cursor.executescript(script_sql)
-
-# Confirmar as alterações no banco de dados
-conexao.commit()
-conexao.close()
-
 class SistemaControleVendas:
     def __init__(self):
         self.produtos = []
@@ -43,7 +28,6 @@ class SistemaControleVendas:
         self.data = None
         self.arquivo = None
     
-
         self.janela = tk.Tk()
         self.janela.title("Controle de Vendas")
         self.verifica_venda_cortesia = tk.BooleanVar()
@@ -178,6 +162,20 @@ class SistemaControleVendas:
         self.atualizar_combobox_produtos()
 
         self.janela.mainloop()
+
+    # Conectar ao banco de dados (ou criar um novo se não existir)
+    conexao = sqlite3.connect('teste.db')
+    cursor = conexao.cursor()
+
+    # Exemplo de consulta na tabela de produtos
+    cursor.execute("SELECT * FROM produtos")
+    resultados = cursor.fetchall()
+
+    for linha in resultados:
+        print(linha)
+
+    conexao.close()        
+
 
     def cadastrar_produto(self):
         if not hasattr(self, 'arquivo') or self.arquivo is None:

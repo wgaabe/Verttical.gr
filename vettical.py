@@ -5,7 +5,6 @@ from datetime import datetime
 import csv
 import os
 
-
 class Produto:
     def __init__(self, data, hora, nome_produto, valor_venda, quantidade_estoque, quantidade_vendida, venda_cortesia):
         self.data = data
@@ -15,7 +14,6 @@ class Produto:
         self.quantidade_estoque = quantidade_estoque
         self.quantidade_vendida = quantidade_vendida
         self.venda_cortesia = venda_cortesia
-
 
 class SistemaControleVendas:
     def __init__(self):
@@ -27,7 +25,6 @@ class SistemaControleVendas:
         self.data = None
         self.arquivo = None
     
-
         self.janela = tk.Tk()
         self.janela.title("Controle de Vendas")
         self.verifica_venda_cortesia = tk.BooleanVar()
