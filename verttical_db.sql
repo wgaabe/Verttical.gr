@@ -25,6 +25,6 @@ CREATE TABLE IF NOT EXISTS Periodos (
     ID INTEGER PRIMARY KEY AUTOINCREMENT,
     DataInicio TEXT NOT NULL,
     HoraInicio TEXT NOT NULL,
-    DataFim TEXT NOT NULL,
-    HoraFim TEXT NOT NULL
+    DataFim TEXT,
+    HoraFim TEXT
 );
