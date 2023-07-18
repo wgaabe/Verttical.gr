@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 from tkinter import messagebox
 from estrutura import Estrutura
 from produto import Produto
@@ -18,11 +19,19 @@ class Interface:
         # Configuração da janela principal
         self.janela = tk.Tk()
         self.janela.title("Gerenciador de Produtos")
-        self.janela.geometry("300x800")
+        self.janela.geometry("600x750")
+
+        # Divisão da janela em duas partes
+        panedwindow = tk.PanedWindow(self.janela, orient=tk.HORIZONTAL)
+        panedwindow.pack(fill=tk.BOTH, expand=True)
+
+        # Frame da esquerda (300x800)
+        frame_esquerda = tk.Frame(panedwindow, width=300, height=800)
+        panedwindow.add(frame_esquerda)
 
         # Frame do período
-        frame_periodo = tk.Frame(self.janela)
-        frame_periodo.grid(padx=10, pady=10)
+        frame_periodo = tk.Frame(frame_esquerda)
+        frame_periodo.grid(row=0, column=0, padx=10, pady=10)
 
         # Label status período
         self.status_periodo_label = tk.Label(frame_periodo, text="", fg="red")
@@ -36,8 +45,8 @@ class Interface:
         botao_finalizar.grid(row=1, column=1, padx=10, pady=10)
 
         # Frame de cadastro de produtos
-        frame_cadastro = tk.Frame(self.janela)
-        frame_cadastro.grid(padx=10, pady=10)
+        frame_cadastro = tk.Frame(frame_esquerda)
+        frame_cadastro.grid(row=1, column=0, padx=10, pady=10)
 
         # Campos de cadastro de produto
         label_produtos = tk.Label(frame_cadastro, text="Cadastrar Produtos:")
@@ -65,8 +74,8 @@ class Interface:
         botao_cadastrar.grid(row=4, column=1, padx=10, pady=10)
 
         # Frame de exibição dos produtos cadastrados
-        frame_produtos = tk.Frame(self.janela)
-        frame_produtos.grid(padx=10, pady=10)
+        frame_produtos = tk.Frame(frame_esquerda)
+        frame_produtos.grid(row=2, column=0, padx=10, pady=10)
 
         # Tela de exibição dos produtos cadastrados
         self.label_produtos = tk.Label(frame_produtos, text="Produtos cadastrados:")
@@ -75,17 +84,75 @@ class Interface:
         self.lista_produtos = tk.Listbox(frame_produtos, height=20, width=40)
         self.lista_produtos.grid(row=1, column=0, columnspan=2, padx=10, pady=5)
 
-        self.botao_editar = tk.Button(frame_produtos, text="Editar", width=15, command=self.produto.editar_produto)
-        self.botao_editar.grid(row=2, column=1, padx=10, pady=10)
+        #self.botao_editar = tk.Button(frame_produtos, text="Editar", width=15, command=self.produto.editar_produto)
+        #self.botao_editar.grid(row=2, column=1, padx=10, pady=10)
 
         # Botão Vendas
         self.botao_vendas = tk.Button(frame_produtos, text="Vendas", width=15, command=self.estrutura.registrar_venda)
         self.botao_vendas.grid(row=2, column=0, padx=10, pady=10)
 
+         # Frame da direita (300x800)
+        frame_direita = tk.Frame(panedwindow, width=300, height=800)
+        panedwindow.add(frame_direita)
+
+         # Frame de edição de produtos
+        frame_edicao = tk.Frame(frame_direita)
+        frame_edicao.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
+
+        # Label "Edição de Produto"
+        label_edicao = tk.Label(frame_edicao, text="Edição de Produto:")
+        label_edicao.grid(row=0, column=0, padx=10, pady=5, sticky=tk.W)
+
+         # Label para exibir a data e a hora de cadastro
+        self.label_cadastro_info_data = tk.Label(frame_edicao, text="")
+        self.label_cadastro_info_data.grid(row=1, column=0, padx=10, pady=0)
+
+         # Label para exibir a data e a hora de cadastro
+        self.label_cadastro_info_hora = tk.Label(frame_edicao, text="")
+        self.label_cadastro_info_hora.grid(row=2, column=0, padx=10, pady=0)
+
+        # Label de seleção de produto
+        label_selecao = tk.Label(frame_edicao, text="Selecionar Produto:")
+        label_selecao.grid(row=3, column=0, padx=10, pady=5, sticky=tk.W)
+
+        # Combobox de seleção de produto
+        self.combobox_produtos = ttk.Combobox(frame_edicao)
+        self.combobox_produtos.grid(row=3, column=1, padx=10, pady=5)
+        self.combobox_produtos.bind("<<ComboboxSelected>>", self.produto.carregar_dados_produto)
+
+        # Campos de edição de produto
+        self.label_nome_edicao = tk.Label(frame_edicao, text="Nome:")
+        self.label_nome_edicao.grid(row=4, column=0, padx=10, pady=5, sticky=tk.W)
+
+        self.entry_nome_edicao = tk.Entry(frame_edicao)
+        self.entry_nome_edicao.grid(row=4, column=1, padx=10, pady=5)
+
+        self.label_valor_edicao = tk.Label(frame_edicao, text="Valor:")
+        self.label_valor_edicao.grid(row=5, column=0, padx=10, pady=5, sticky=tk.W)
+
+        self.entry_valor_edicao = tk.Entry(frame_edicao)
+        self.entry_valor_edicao.grid(row=5, column=1, padx=10, pady=5)
+
+        self.label_quantidade_edicao = tk.Label(frame_edicao, text="Quantidade:")
+        self.label_quantidade_edicao.grid(row=6, column=0, padx=10, pady=5, sticky=tk.W)
+
+        self.entry_quantidade_edicao = tk.Entry(frame_edicao)
+        self.entry_quantidade_edicao.grid(row=6, column=1, padx=10, pady=5)
+
+        # Botão Salvar
+        self.botao_salvar_edicao = tk.Button(frame_edicao, text="Salvar", width=15, command=self.produto.salvar_edicao_produto)
+        self.botao_salvar_edicao.grid(row=7, column=1, padx=10, pady=10)
+
+        # Botão Excluir
+        self.botao_excluir = tk.Button(frame_edicao, text="Excluir", width=15, command=self.produto.excluir_produto)
+        self.botao_excluir.grid(row=7, column=0, padx=10, pady=10)
+
+
         # Configurar evento para fechar o programa
         self.janela.protocol("WM_DELETE_WINDOW", self.fechar_programa)
 
         self.estrutura.showload_status_periodo()  # Verificar o período aberto e exibir produtos
+        self.produto.carrega_produtos_combobox()
 
         self.janela.mainloop()
 

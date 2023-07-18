@@ -39,15 +39,20 @@ class Database:
     def obter_periodo_aberto(self):
         self.abrir_conexao()
         with self.conexao:
-            self.cursor.execute("SELECT * FROM Periodos WHERE DataFim IS NULL")
+            self.cursor.execute("SELECT ID, DataInicio, HoraInicio FROM Periodos WHERE DataFim IS NULL")
             periodo = self.cursor.fetchone()
-            return periodo
+            return periodo if periodo else ()
     
-    def inserir_produto(self, nome, valor, quantidade, data_entrada, hora_entrada):
+    def inserir_produto(self, nome, valor, quantidade, data_entrada, hora_entrada, periodo_id):
         self.abrir_conexao()
         with self.conexao:
-            self.cursor.execute("INSERT INTO Produtos (Nome, Valor, Quantidade, DataEntrada, HoraEntrada) VALUES (?, ?, ?, ?, ?)",
-                                (nome, valor, quantidade, data_entrada, hora_entrada))
+            self.cursor.execute("INSERT INTO Produtos (Nome, Valor, Quantidade, DataEntrada, HoraEntrada, PeriodoID) VALUES (?, ?, ?, ?, ?, ?)",
+                                (nome, valor, quantidade, data_entrada, hora_entrada, periodo_id))
+
+    def excluir_produto(self, produto_id):
+        self.abrir_conexao()
+        with self.conexao:
+            self.cursor.execute("DELETE FROM Produtos WHERE ID = ?", (produto_id,))
 
     def obter_produtos_periodo(self, periodo_id):
         self.abrir_conexao()
@@ -68,48 +73,43 @@ class Database:
             self.fechar_conexao()
 
 
-    def criar_tabela_produtos(self):
+    def obter_id_produto(self, produto, periodo_id):
         self.abrir_conexao()
-        with self.conexao:
-            sql = """
-            CREATE TABLE IF NOT EXISTS Produtos (
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                Nome TEXT NOT NULL,
-                Valor REAL NOT NULL,
-                Quantidade INTEGER NOT NULL,
-                DataEntrada TEXT NOT NULL,
-                HoraEntrada TEXT NOT NULL
-            )
-            """
-            self.cursor.execute(sql)
+        try:
+            self.cursor.execute("SELECT ID FROM Produtos WHERE Nome = ? AND PeriodoID = ?", (produto, periodo_id))
+            resultado = self.cursor.fetchone()
+            if resultado:
+                return resultado[0]
+            else:
+                return None
+        except sqlite3.Error as error:
+            print("Erro ao executar a consulta SQL:", error)
+        finally:
+            self.fechar_conexao()
 
-    def criar_tabela_vendas(self):
+    def verificar_produto_periodo(self, produto_id, data_entrada, hora_entrada):
         self.abrir_conexao()
         with self.conexao:
-            sql = """
-            CREATE TABLE IF NOT EXISTS Vendas (
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                Data TEXT NOT NULL,
-                Hora TEXT NOT NULL,
-                Produto TEXT NOT NULL,
-                Quantidade INTEGER NOT NULL,
-                ValorTotal REAL NOT NULL,
-                PeriodoID INTEGER NOT NULL,
-                FOREIGN KEY (PeriodoID) REFERENCES Periodos(ID)
-            )
-            """
-            self.cursor.execute(sql)
+            self.cursor.execute("SELECT COUNT(*) FROM Produtos WHERE ID = ? AND DataEntrada >= ? AND HoraEntrada >= ?", (produto_id, data_entrada, hora_entrada))
+            resultado = self.cursor.fetchone()
+            if resultado and resultado[0] > 0:
+                return True
+        return False
+                
+    def atualizar_produto(self, produto_id, nome, valor, quantidade):
+        self.abrir_conexao()
+        with self.conexao:
+            self.cursor.execute("UPDATE Produtos SET Nome = ?, Valor = ?, Quantidade = ? WHERE ID = ?",
+                                (nome, valor, quantidade, produto_id))
+            
+    def obter_dados_completos_produto(self, produto_id):
+        self.abrir_conexao()
+        with self.conexao:
+            self.cursor.execute("SELECT Nome, Valor, Quantidade, DataEntrada, HoraEntrada FROM Produtos WHERE ID = ?", (produto_id,))
+            resultado = self.cursor.fetchone()
+            if resultado:
+                return resultado
+            else:
+                return None
 
-    def criar_tabela_periodos(self):
-        self.abrir_conexao()
-        with self.conexao:
-            sql = """
-            CREATE TABLE IF NOT EXISTS Periodos (
-                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                DataInicio TEXT NOT NULL,
-                HoraInicio TEXT NOT NULL,
-                DataFim TEXT,
-                HoraFim TEXT
-            )
-            """
-            self.cursor.execute(sql)
+            

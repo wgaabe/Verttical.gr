@@ -68,11 +68,14 @@ class Estrutura:
                 hora_final = datetime.now().strftime("%H:%M:%S")
                 self.database.atualizar_periodo(periodo_aberto[0], data_final, hora_final)
                 messagebox.showinfo("Período Finalizado", "O período foi finalizado com sucesso!")
-                self.interface.lista_produtos.delete(0, tk.END)  # Limpar lista de produtos
-                self.produtos.exibir_produtos()  # Carregar novos dados de produtos
-                self.showload_status_periodo()  # Atualizar status do período na interface
+                
+                self.clear_interface_values()
             else:
                 self.abrir_janela_data_hora_manual(False)
+
+    def obter_id_periodo_aberto(self):
+        periodo_id = self.database.obter_periodo_aberto()
+        return periodo_id
 
     def abrir_janela_data_hora_manual(self, iniciar):
         janela = tk.Toplevel()
@@ -127,6 +130,15 @@ class Estrutura:
                 messagebox.showwarning("Período não Iniciado", "Não há período em aberto para finalizar.")
 
         janela.destroy()
+
+    def clear_interface_values(self):
+        self.interface.entry_nome_edicao.delete(0, tk.END)# Limpar edição
+        self.interface.entry_valor_edicao.delete(0, tk.END)# Limpar edição
+        self.interface.entry_quantidade_edicao.delete(0, tk.END)# Limpar edição
+        self.interface.lista_produtos.delete(0, tk.END)  # Limpar lista de produtos
+        self.interface.combobox_produtos['values'] = [] #limpa combobox edição
+        self.showload_status_periodo()
+        
 
     def registrar_venda(self):
         messagebox.showinfo("Aviso", "Venda registrada.")
