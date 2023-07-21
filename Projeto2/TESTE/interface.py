@@ -1,15 +1,21 @@
 import tkinter as tk
-from tkinter import ttk
-from tkinter import messagebox
-from estrutura import Estrutura
+from tkinter import messagebox, ttk
 from produto import Produto
+from estrutura import Estrutura
+from controller import Controller
 from database import Database
 
 class Interface:
     def __init__(self):
-        self.estrutura = Estrutura(self)
-        self.produto = Produto(self)
+        # Inicializar a instância de Database
         self.database = Database()
+
+        # Inicializar a instância de Controller, passando a instância de Database
+        self.controller = Controller(self.database)
+
+         # Criar instâncias de Produto e Estrutura, passando a instância de Controller
+        self.produto = Produto(self, self.controller)
+        self.estrutura = Estrutura(self, self.controller)
 
     def fechar_programa(self):
         if messagebox.askokcancel("Fechar Programa", "Deseja realmente sair?"):
@@ -167,6 +173,10 @@ class Interface:
         self.venda_cortesia_var = tk.IntVar()
         checkbox_venda_cortesia = tk.Checkbutton(frame_vendas, text="Venda Cortesia", variable=self.venda_cortesia_var)
         checkbox_venda_cortesia.grid(row=3, column=0, columnspan=2, padx=10, pady=5)
+        
+        # Botão Registrar Venda
+        self.botao_registrar_venda = tk.Button(frame_vendas, text="Registrar Venda", width=15, command=None)
+        self.botao_registrar_venda.grid(row=4, column=0, columnspan=2, padx=10, pady=10)
 
         # Configurar evento para fechar o programa
         self.janela.protocol("WM_DELETE_WINDOW", self.fechar_programa)

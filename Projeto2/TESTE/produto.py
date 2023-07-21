@@ -4,8 +4,9 @@ from datetime import datetime
 from database import Database
 
 class Produto:
-    def __init__(self, interface):
+    def __init__(self, interface, controller):
         self.interface = interface
+        self.controller = controller
         self.database = Database()
 
     def cadastrar_produto(self):
@@ -34,24 +35,7 @@ class Produto:
                     messagebox.showerror("Erro", "Valor e quantidade devem ser números.")
             else:
                 messagebox.showerror("Erro", "Preencha todos os campos.")
-    '''
-    def editar_produto(self):
-        selecionado = self.interface.lista_produtos.curselection()
-        if selecionado:
-            produto = self.interface.lista_produtos.get(selecionado[0])
-            nome, valor, quantidade = self.obter_dados_produto(produto)
 
-            self.interface.entry_nome_edicao.delete(0, tk.END)
-            self.interface.entry_nome_edicao.insert(tk.END, nome)
-
-            self.interface.entry_valor_edicao.delete(0, tk.END)
-            self.interface.entry_valor_edicao.insert(tk.END, valor)
-
-            self.interface.entry_quantidade_edicao.delete(0, tk.END)
-            self.interface.entry_quantidade_edicao.insert(tk.END, quantidade)
-        else:
-            messagebox.showerror("Erro", "Selecione um produto para editar.")
-'''
     def excluir_produto(self):
         selecionado = self.interface.combobox_produtos.get()
         periodo_aberto = self.database.obter_periodo_aberto()  # Obter o período em aberto
@@ -68,6 +52,8 @@ class Produto:
                     self.interface.entry_valor_edicao.delete(0, tk.END)
                     self.interface.entry_quantidade_edicao.delete(0, tk.END)
                     self.interface.lista_produtos.delete(0, tk.END)  # Limpar lista de produtos
+                    self.interface.label_cadastro_info_data.config(text="")
+                    self.interface.label_cadastro_info_hora.config(text="")
                     self.exibir_produtos()  # Carregar novos dados de produtos
                     self.carrega_produtos_combobox()  # Carregar novos dados na combobox
                 else:
@@ -77,11 +63,9 @@ class Produto:
         else:
             messagebox.showwarning("Período não Iniciado", "Não há período em aberto. Inicie um período antes de excluir produtos.")
 
-
     def carregar_produtos_cadastrados(self):
         produtos_cadastrados = self.database.obter_nomes_produtos()
         self.interface.combobox_produtos['values'] = produtos_cadastrados
-
         
     def carregar_dados_produto(self, event):
         produto = self.interface.combobox_produtos.get()
