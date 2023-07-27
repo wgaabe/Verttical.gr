@@ -4,6 +4,7 @@ from produto import Produto
 from estrutura import Estrutura
 from controller import Controller
 from database import Database
+from vendas import Vendas  # Importar a classe Vendas
 
 class Interface:
     def __init__(self):
@@ -12,10 +13,16 @@ class Interface:
 
         # Inicializar a instância de Controller, passando a instância de Database
         self.controller = Controller(self.database)
+        
+        # Definir a interface do controller
+        self.controller.interface = self
 
          # Criar instâncias de Produto e Estrutura, passando a instância de Controller
         self.produto = Produto(self, self.controller)
         self.estrutura = Estrutura(self, self.controller)
+        self.vendas = Vendas(self, self.controller)
+
+        
 
     def fechar_programa(self):
         if messagebox.askokcancel("Fechar Programa", "Deseja realmente sair?"):
@@ -26,6 +33,9 @@ class Interface:
         self.janela = tk.Tk()
         self.janela.title("Gerenciador de Produtos")
         self.janela.geometry("660x800")
+
+        self.venda_cortesia = tk.BooleanVar()  # Variável para venda cortesia (checkbox)
+        self.venda_cortesia.set(False)  # Valor inicial da venda cortesia (não marcada)
 
         # Divisão da janela em duas partes
         panedwindow = tk.PanedWindow(self.janela, orient=tk.HORIZONTAL)
@@ -100,7 +110,7 @@ class Interface:
 
         # Label "Edição de Produto"
         label_edicao = tk.Label(frame_edicao, text="Edição de Produto:")
-        label_edicao.grid(row=0, column=0, padx=10, pady=5, sticky=tk.W)
+        label_edicao.grid(row=0, column=0, padx=10, pady=5, sticky=tk.E)
 
          # Label para exibir a data e a hora de cadastro
         self.label_cadastro_info_data = tk.Label(frame_edicao, text="")
@@ -112,7 +122,7 @@ class Interface:
 
         # Label de seleção de produto
         label_selecao = tk.Label(frame_edicao, text="Selecionar Produto:")
-        label_selecao.grid(row=3, column=0, padx=10, pady=5, sticky=tk.W)
+        label_selecao.grid(row=3, column=0, padx=10, pady=5, sticky=tk.E)
 
         # Combobox de seleção de produto
         self.combobox_produtos = ttk.Combobox(frame_edicao)
@@ -121,19 +131,19 @@ class Interface:
 
         # Campos de edição de produto
         self.label_nome_edicao = tk.Label(frame_edicao, text="Nome:")
-        self.label_nome_edicao.grid(row=4, column=0, padx=10, pady=5, sticky=tk.W)
+        self.label_nome_edicao.grid(row=4, column=0, padx=10, pady=5, sticky=tk.E)
 
         self.entry_nome_edicao = tk.Entry(frame_edicao)
         self.entry_nome_edicao.grid(row=4, column=1, padx=10, pady=5)
 
         self.label_valor_edicao = tk.Label(frame_edicao, text="Valor:")
-        self.label_valor_edicao.grid(row=5, column=0, padx=10, pady=5, sticky=tk.W)
+        self.label_valor_edicao.grid(row=5, column=0, padx=10, pady=5, sticky=tk.E)
 
         self.entry_valor_edicao = tk.Entry(frame_edicao)
         self.entry_valor_edicao.grid(row=5, column=1, padx=10, pady=5)
 
         self.label_quantidade_edicao = tk.Label(frame_edicao, text="Quantidade:")
-        self.label_quantidade_edicao.grid(row=6, column=0, padx=10, pady=5, sticky=tk.W)
+        self.label_quantidade_edicao.grid(row=6, column=0, padx=10, pady=5, sticky=tk.E)
 
         self.entry_quantidade_edicao = tk.Entry(frame_edicao)
         self.entry_quantidade_edicao.grid(row=6, column=1, padx=10, pady=5)
@@ -154,17 +164,20 @@ class Interface:
         label_nome_frame_vendas = tk.Label(frame_vendas, text="Registro de Vendas:")
         label_nome_frame_vendas.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky=tk.W)
 
+        # Campo de quantidade para registro de vendas
+        self.label_quantidade_venda = tk.Label(frame_vendas, text="", fg="blue")
+        self.label_quantidade_venda.grid(row=0, column=1, columnspan=2, padx=10, pady=5, sticky=tk.W)
+
         # Combobox de produtos para registro de vendas
-        label_produtos_venda = tk.Label(frame_vendas, text="Produto:")
+        label_produtos_venda = tk.Label(frame_vendas, text="Selecionar Produto:")
         label_produtos_venda.grid(row=1, column=0, padx=10, pady=5, sticky=tk.W)
 
         self.combobox_produtos_venda = ttk.Combobox(frame_vendas)
         self.combobox_produtos_venda.grid(row=1, column=1, padx=10, pady=5)
-        self.combobox_produtos_venda.bind("<<ComboboxSelected>>", None)
+        self.combobox_produtos_venda.bind("<<ComboboxSelected>>", self.vendas.atualizar_quantidade_disponivel)
 
-        # Campo de quantidade para registro de vendas
-        label_quantidade_venda = tk.Label(frame_vendas, text="Quantidade:")
-        label_quantidade_venda.grid(row=2, column=0, padx=10, pady=5, sticky=tk.W)
+        label_quantidade_venda_label = tk.Label(frame_vendas, text="Quantidade:")
+        label_quantidade_venda_label.grid(row=2, column=0, padx=10, pady=5, sticky=tk.W)
 
         self.entry_quantidade_venda = tk.Entry(frame_vendas)
         self.entry_quantidade_venda.grid(row=2, column=1, padx=10, pady=5)
@@ -172,20 +185,67 @@ class Interface:
         # Campo de venda cortesia para registro de vendas
         self.venda_cortesia_var = tk.IntVar()
         checkbox_venda_cortesia = tk.Checkbutton(frame_vendas, text="Venda Cortesia", variable=self.venda_cortesia_var)
-        checkbox_venda_cortesia.grid(row=3, column=0, columnspan=2, padx=10, pady=5)
-        
+        checkbox_venda_cortesia.grid(row=3, column=0, columnspan=2, padx=10, pady=5, sticky=tk.W)
+
+        # Botão Adicionar vendas a lista de vendas
+        self.botao_adicionar_venda = tk.Button(frame_vendas, text="Adicionar", command=self.vendas.adicionar_produto_venda)
+        self.botao_adicionar_venda.grid(row=3, column=1, padx=10, pady=5)
+
+        #frame lista de vendas
+        self.lista_produtos_venda = tk.Listbox(frame_vendas, width=40, height=10)
+        self.lista_produtos_venda.grid(row=5, column=0, padx=10, pady=5, columnspan=2)
+
+        # Botão remover produtos da lista 
+        self.botao_excluir_venda = tk.Button(frame_vendas, text="Excluir", command=self.vendas.excluir_produto_venda)
+        self.botao_excluir_venda.grid(row=6, column=1, padx=10, pady=5)
+
         # Botão Registrar Venda
         self.botao_registrar_venda = tk.Button(frame_vendas, text="Registrar Venda", width=15, command=None)
-        self.botao_registrar_venda.grid(row=4, column=0, columnspan=2, padx=10, pady=10)
+        self.botao_registrar_venda.grid(row=7, column=0, columnspan=2, padx=10, pady=10)
+
+        self.vendas.carregar_produtos_combobox_venda()
+        self.vendas.atualizar_quantidade_disponivel()
 
         # Configurar evento para fechar o programa
         self.janela.protocol("WM_DELETE_WINDOW", self.fechar_programa)
 
+        # Configurar o botão "Registrar Venda" para chamar o método de registro de venda
+        self.botao_registrar_venda.config(command=self.registrar_venda_interface)
+
         self.estrutura.showload_status_periodo()  # Verificar o período aberto e exibir produtos
         self.produto.carrega_produtos_combobox()
-
+        
         self.janela.mainloop()
 
-# Instanciação da interface e execução do programa
-interface = Interface()
-interface.executar()
+    def registrar_venda_interface(self):
+        produto_selecionado = self.combobox_produtos_venda.get()
+        quantidade = self.entry_quantidade_venda.get()
+        venda_cortesia = self.venda_cortesia_var.get()
+
+        # Verificar se a quantidade é um número inteiro
+        try:
+            quantidade = int(quantidade)
+        except ValueError:
+            messagebox.showwarning("Quantidade inválida", "A quantidade deve ser um número inteiro.")
+            return
+
+        # Realizar a chamada do método registrar_venda da classe Vendas
+        if produto_selecionado and quantidade:
+            # Obter o valor unitário do produto selecionado
+            valor_unitario = self.vendas.obter_valor_produto(produto_selecionado)
+            if valor_unitario is not None:
+                valor_total = valor_unitario * quantidade
+                if self.vendas.registrar_venda(produto_selecionado, quantidade, valor_total, venda_cortesia, valor_unitario):
+                    # Atualizar a interface após registrar a venda
+                    self.produto.carrega_produtos_combobox()
+                    self.vendas.carregar_produtos_combobox_venda()
+                    self.vendas.atualizar_quantidade_disponivel()
+            else:
+                messagebox.showwarning("Produto não encontrado", "O produto selecionado não foi encontrado no período atual.")
+        else:
+            messagebox.showwarning("Campos obrigatórios", "Por favor, preencha todos os campos obrigatórios.")
+
+if __name__ == "__main__":
+    # Instanciação da interface e execução do programa
+    interface = Interface()
+    interface.executar()

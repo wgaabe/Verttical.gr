@@ -144,6 +144,7 @@ class Estrutura:
 
         # Limpar o combobox de edição
         self.interface.combobox_produtos['values'] = []
+        self.interface.combobox_produtos_venda['values'] = []
 
         # Limpar o texto dos campos de data e hora de cadastro
         self.interface.label_cadastro_info_data.config(text="")

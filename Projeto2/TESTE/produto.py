@@ -31,6 +31,7 @@ class Produto:
                     self.interface.lista_produtos.delete(0, tk.END)  # Limpar lista de produtos
                     self.exibir_produtos()  # Carregar novos dados de produtos
                     self.carrega_produtos_combobox() #carrega as combobox
+                    self.interface.vendas.carregar_produtos_combobox_venda()  # Atualizar a ComboBox de produtos na tela de vendas
                 else:
                     messagebox.showerror("Erro", "Valor e quantidade devem ser números.")
             else:
@@ -56,6 +57,7 @@ class Produto:
                     self.interface.label_cadastro_info_hora.config(text="")
                     self.exibir_produtos()  # Carregar novos dados de produtos
                     self.carrega_produtos_combobox()  # Carregar novos dados na combobox
+                    self.interface.vendas.carregar_produtos_combobox_venda()  # Atualizar a ComboBox de produtos na tela de vendas
                 else:
                     messagebox.showinfo("Exclusão Cancelada", "A exclusão do produto foi cancelada.")
             else:
@@ -120,6 +122,7 @@ class Produto:
                         self.interface.lista_produtos.delete(0, tk.END)  # Limpar lista de produtos
                         self.exibir_produtos()  # Carregar novos dados de produtos
                         self.carrega_produtos_combobox()  # Carregar novos dados na combobox
+                        self.interface.vendas.carregar_produtos_combobox_venda()  # Atualizar a ComboBox de produtos na tela de vendas
                     else:
                         messagebox.showerror("Erro", "Valor e quantidade devem ser números.")
                 else:

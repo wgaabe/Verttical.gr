@@ -8,6 +8,7 @@ from database import Database
 class Controller:
     def __init__(self, database):
         self.database = database
+        self.interface = None 
 
     def set_interface(self, interface):
         self.interface = interface
@@ -17,7 +18,7 @@ class Controller:
 
         if periodo_aberto:
             periodo_id = periodo_aberto[0]
-            produtos = self.database.obter_produtos_periodo(periodo_id)
+            produtos = self.database.obter_produtos_periodo(periodo_id)  # Adicionando o argumento periodo_id aqui
             data_inicio = periodo_aberto[1]
             hora_inicio = periodo_aberto[2]
             status_periodo = f"Período Aberto - Início: {data_inicio} {hora_inicio}"
@@ -52,6 +53,12 @@ class Controller:
                 self.showload_status_periodo()  # Atualizar status do período na interface
             else:
                 self.abrir_janela_data_hora_manual(True)
+
+    def obter_nomes_produtos(self, periodo_id):
+        return self.database.obter_nomes_produtos(periodo_id)
+    
+    def obter_periodo_aberto(self):
+        return self.database.obter_periodo_aberto()
 
     def finalizar_periodo(self):
         periodo_aberto = self.database.obter_periodo_aberto()
@@ -100,6 +107,9 @@ class Controller:
         btn_confirmar = tk.Button(janela, text="Confirmar", command=lambda: self.obter_data_hora(calendario, spin_hora, spin_minuto, spin_segundo, janela, iniciar))
         btn_confirmar.pack(padx=10, pady=10)
 
+    def obter_produtos_periodo(self, periodo_id):
+        return self.database.obter_produtos_periodo(periodo_id)
+    
     def obter_data_hora(self, calendario, spin_hora, spin_minuto, spin_segundo, janela, iniciar):
         data_selecionada = calendario.selection_get()
         hora_selecionada = spin_hora.get()
@@ -124,8 +134,25 @@ class Controller:
 
         janela.destroy()
 
+    def registrar_venda(self, data_hora, produto, quantidade, valor_total, periodo_id, venda_cortesia, produto_id):
+        self.database.registrar_venda(data_hora, produto, quantidade, valor_total, periodo_id, produto_id, venda_cortesia)
+        # Atualizar outros dados ou interface, se necessário
+
+    def obter_id_produto_por_nome(self, produto, periodo_id):
+        return self.database.obter_id_produto(produto, periodo_id)
+
     def obter_id_periodo_aberto(self):
         return self.database.obter_periodo_aberto()
+
+    def obter_produtos_periodo(self, periodo_id):
+        return self.database.obter_produtos_periodo(periodo_id)
+
+    def obter_quantidade_produto(self, produto_id):
+        return self.database.obter_quantidade_produto(produto_id)
+
+    def obter_valor_produto(self, produto, periodo_id):
+        return self.database.obter_valor_produto(produto, periodo_id)
+
 
     # Outros métodos úteis, se necessário
     # ...

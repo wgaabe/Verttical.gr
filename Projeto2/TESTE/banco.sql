@@ -16,13 +16,15 @@ CREATE TABLE Produtos (
     PeriodoID INTEGER,
     FOREIGN KEY (PeriodoID) REFERENCES Periodos(ID)
 )
-CREATE TABLE Vendas (
-	ID INTEGER PRIMARY KEY AUTOINCREMENT,
-	Data TEXT NOT NULL,
-	Hora TEXT NOT NULL,
-	Produto TEXT NOT NULL,
-	Quantidade INTEGER NOT NULL,
-	ValorTotal REAL NOT NULL,
-	PeriodoID INTEGER NOT NULL,
-	FOREIGN KEY (PeriodoID) REFERENCES Periodos(ID)
-)
+CREATE TABLE vendas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    data_hora DATETIME,
+    produto VARCHAR(100),
+    quantidade INT,
+    valor_total DECIMAL(10, 2),
+    periodo_id INT,
+    produto_id INT,
+    venda_cortesia BOOLEAN,
+    FOREIGN KEY (periodo_id) REFERENCES periodo(id),
+    FOREIGN KEY (produto_id) REFERENCES produtos(id)
+);
