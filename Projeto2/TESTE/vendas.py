@@ -135,7 +135,8 @@ class Vendas:
             if produtos_dados_completos is not None:
                 produtos_nomes = [produto[1] for produto in produtos_dados_completos]
                 self.interface.combobox_produtos_venda['values'] = produtos_nomes
-                self.interface.combobox_produtos_venda.current(0)
+                if len(produtos_nomes) > 0:  # Verifica se a lista tem itens antes de definir o índice atual
+                    self.interface.combobox_produtos_venda.current(0)
             else:
                 messagebox.showwarning("Produtos não encontrados", "Não há produtos cadastrados para o período em aberto.")
         else:

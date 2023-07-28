@@ -97,8 +97,11 @@ class Interface:
         self.label_produtos = tk.Label(frame_produtos, text="Produtos cadastrados:")
         self.label_produtos.grid(row=0, column=0, padx=10, pady=5, sticky=tk.W)
 
-        self.lista_produtos = tk.Listbox(frame_produtos, height=20, width=40)
-        self.lista_produtos.grid(row=1, column=0, columnspan=2, padx=10, pady=5)
+        self.lista_produtos_cadastrados = tk.Frame(frame_produtos, width=10, height=10)
+        self.lista_produtos_cadastrados.grid(row=5, column=0, padx=10, pady=5, columnspan=2)
+
+        #self.lista_produtos = tk.Listbox(frame_produtos, height=20, width=40)
+        #self.lista_produtos.grid(row=1, column=0, columnspan=2, padx=10, pady=5)
 
          # Frame da direita (300x800)
         frame_direita = tk.Frame(panedwindow, width=330, height=800)
@@ -193,7 +196,7 @@ class Interface:
 
         #frame lista de vendas
         # Crie o atributo lista_produtos_venda_tabela aqui dentro do método executar
-        self.lista_produtos_venda_tabela = tk.Frame(frame_vendas, width=10, height=10)
+        self.lista_produtos_venda_tabela = tk.Frame(frame_vendas, width=10, height=0)
         self.lista_produtos_venda_tabela.grid(row=5, column=0, padx=10, pady=5, columnspan=2)
 
         #botão limpar lista, limpa todos os produtos adicionados
@@ -213,6 +216,9 @@ class Interface:
         self.botao_registrar_venda.grid(row=8, column=0, columnspan=2, padx=10, pady=10)
 
         self.criar_tabela_vendas()
+        self.criar_tabela_produtos_cadastrados()
+
+        self.atualizar_tabela_produtos_cadastrados()
         self.vendas.carregar_produtos_combobox_venda()
         self.vendas.atualizar_quantidade_disponivel()
 
@@ -241,6 +247,45 @@ class Interface:
         self.tabela_vendas.column("Valor Total", anchor=tk.CENTER, width=70)
 
         self.tabela_vendas.grid(row=5, column=0, columnspan=2, padx=10, pady=5)
+
+    def criar_tabela_produtos_cadastrados(self):
+        self.tabela_produtos_cadastrados = ttk.Treeview(self.lista_produtos_cadastrados, columns=("Nome", "Valor", "Quantidade"))
+        self.tabela_produtos_cadastrados.heading("#0", text="ID")  # Coluna oculta para armazenar o índice do produto na lista
+        self.tabela_produtos_cadastrados.heading("Nome", text="Nome")
+        self.tabela_produtos_cadastrados.heading("Valor", text="Valor")
+        self.tabela_produtos_cadastrados.heading("Quantidade", text="Quantidade")
+
+        self.tabela_produtos_cadastrados.column("#0", stretch=tk.NO, minwidth=0, width=0)  # Coluna oculta
+        self.tabela_produtos_cadastrados.column("Nome", anchor=tk.W, width=70)
+        self.tabela_produtos_cadastrados.column("Valor", anchor=tk.CENTER, width=70)
+        self.tabela_produtos_cadastrados.column("Quantidade", anchor=tk.CENTER, width=70)
+
+        self.tabela_produtos_cadastrados.grid(row=1, column=0, columnspan=2, padx=10, pady=5)    
+
+    def atualizar_tabela_produtos_cadastrados(self):
+        # Limpar a tabela antes de exibir os produtos cadastrados
+        for item in self.tabela_produtos_cadastrados.get_children():
+            self.tabela_produtos_cadastrados.delete(item)
+
+        # Obter o período aberto (você pode alterar isso dependendo de como está controlando o período aberto)
+        periodo_aberto = self.controller.obter_periodo_aberto()
+
+        if periodo_aberto:
+            periodo_id = periodo_aberto[0]  # Extrair o primeiro valor do período aberto (que é o ID do período)
+            produtos_cadastrados = self.controller.obter_produtos_periodo(periodo_id)
+
+            if produtos_cadastrados:
+                # Exibir os produtos na tabela
+                for produto in produtos_cadastrados:
+                    nome, valor, quantidade = produto[1], produto[2], produto[3]
+                    self.tabela_produtos_cadastrados.insert("", tk.END, values=(nome, f"R$ {valor:.2f}", quantidade))
+            else:
+                # Caso não haja produtos cadastrados para o período aberto, adicione uma mensagem na tabela
+                self.tabela_produtos_cadastrados.insert("", tk.END, values=("Nenhum produto cadastrado", "", ""))
+        else:
+            # Caso não haja período aberto, adicione uma mensagem na tabela
+            self.tabela_produtos_cadastrados.insert("", tk.END, values=("Nenhum período aberto", "", ""))
+
 
     def adicionar_produto_venda_interface(self):
         produto_selecionado = self.combobox_produtos_venda.get()

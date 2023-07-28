@@ -28,7 +28,7 @@ class Produto:
                     self.interface.entry_nome.delete(0, tk.END)
                     self.interface.entry_valor.delete(0, tk.END)
                     self.interface.entry_quantidade.delete(0, tk.END)
-                    self.interface.lista_produtos.delete(0, tk.END)  # Limpar lista de produtos
+                    self.interface.tabela_produtos_cadastrados.delete(*self.interface.tabela_produtos_cadastrados.get_children())  # Limpar lista de produtos
                     self.exibir_produtos()  # Carregar novos dados de produtos
                     self.carrega_produtos_combobox() #carrega as combobox
                     self.interface.vendas.carregar_produtos_combobox_venda()  # Atualizar a ComboBox de produtos na tela de vendas
@@ -102,7 +102,7 @@ class Produto:
 
     def salvar_edicao_produto(self):
         selecionado = self.interface.combobox_produtos.get()
-        periodo_aberto = self.database.obter_periodo_aberto()  # Obter o período em aberto
+        periodo_aberto = self.controller.obter_periodo_aberto()  # Obter o período em aberto
         if periodo_aberto:
             periodo_aberto_id = periodo_aberto[0]  # Extrai o PeriodoID da tupla
             produto_id = self.database.obter_id_produto(selecionado, periodo_aberto_id)  # Passar o ID do período em aberto
@@ -119,10 +119,10 @@ class Produto:
                         self.interface.entry_nome_edicao.delete(0, tk.END)
                         self.interface.entry_valor_edicao.delete(0, tk.END)
                         self.interface.entry_quantidade_edicao.delete(0, tk.END)
-                        self.interface.lista_produtos.delete(0, tk.END)  # Limpar lista de produtos
-                        self.exibir_produtos()  # Carregar novos dados de produtos
-                        self.carrega_produtos_combobox()  # Carregar novos dados na combobox
+                        self.interface.atualizar_tabela_produtos_cadastrados()  # Atualizar a tabela de produtos cadastrados
                         self.interface.vendas.carregar_produtos_combobox_venda()  # Atualizar a ComboBox de produtos na tela de vendas
+                        self.carrega_produtos_combobox()
+                        
                     else:
                         messagebox.showerror("Erro", "Valor e quantidade devem ser números.")
                 else:
@@ -131,6 +131,7 @@ class Produto:
                 messagebox.showerror("Erro", "Produto não encontrado.")
         else:
             messagebox.showwarning("Período não Iniciado", "Não há período em aberto. Inicie um período antes de salvar as alterações do produto.")
+
 
             
     def obter_dados_produto(self, produto):
@@ -147,7 +148,7 @@ class Produto:
         else:
             periodo_id = periodo_aberto[0]
             produtos = self.database.obter_produtos_periodo(periodo_id)
-            self.interface.lista_produtos.delete(0, tk.END)
+            self.interface.tabela_produtos_cadastrados.delete(*self.interface.tabela_produtos_cadastrados.get_children())
             nomes_produtos = [produto[1] for produto in produtos]
 
             for produto in produtos:
@@ -155,7 +156,7 @@ class Produto:
                 valor = produto[2]
                 quantidade = produto[3]
                 produto_formatado = f"Nome: {nome}, Valor: {valor}, Quantidade: {quantidade}"
-                self.interface.lista_produtos.insert(tk.END, produto_formatado)
+                self.interface.tabela_produtos_cadastrados.insert("", tk.END, values=(nome, f"R$ {valor:.2f}", quantidade))
 
     def carrega_produtos_combobox(self):
         periodo_aberto = self.database.obter_periodo_aberto()

@@ -106,9 +106,6 @@ class Controller:
         # Botão para confirmar a seleção da data e hora
         btn_confirmar = tk.Button(janela, text="Confirmar", command=lambda: self.obter_data_hora(calendario, spin_hora, spin_minuto, spin_segundo, janela, iniciar))
         btn_confirmar.pack(padx=10, pady=10)
-
-    def obter_produtos_periodo(self, periodo_id):
-        return self.database.obter_produtos_periodo(periodo_id)
     
     def obter_data_hora(self, calendario, spin_hora, spin_minuto, spin_segundo, janela, iniciar):
         data_selecionada = calendario.selection_get()

@@ -1,5 +1,6 @@
 import sqlite3
 import threading
+import traceback
 
 class Database:
     def __init__(self):
@@ -21,74 +22,103 @@ class Database:
             self.conexao.close()    
 
     def criar_database(self):
-        self.abrir_conexao()
-        self.criar_tabela_produtos()
-        self.criar_tabela_vendas()
-        self.criar_tabela_periodos()
+        try:
+            self.abrir_conexao()
+            self.criar_tabela_produtos()
+            self.criar_tabela_vendas()
+            self.criar_tabela_periodos()
+        except Exception as e:
+            print("Erro ao criar o banco de dados:")
+            print(traceback.format_exc())
 
     def inserir_periodo(self, data, hora):
         with self.lock:
-            self.abrir_conexao()
-            with self.conexao:
-                self.cursor.execute("INSERT INTO Periodos (DataInicio, HoraInicio) VALUES (?, ?)", (data, hora))
+            try:
+                self.abrir_conexao()
+                with self.conexao:
+                    self.cursor.execute("INSERT INTO Periodos (DataInicio, HoraInicio) VALUES (?, ?)", (data, hora))
+            except Exception as e:
+                print("Erro ao inserir período:")
+                print(traceback.format_exc())
 
     def atualizar_periodo(self, periodo_id, data_fim, hora_fim):
         with self.lock:
-            self.abrir_conexao()
-            with self.conexao:
-                self.cursor.execute("UPDATE Periodos SET DataFim = ?, HoraFim = ? WHERE ID = ?", (data_fim, hora_fim, periodo_id))
-
+            try:
+                self.abrir_conexao()
+                with self.conexao:
+                    self.cursor.execute("UPDATE Periodos SET DataFim = ?, HoraFim = ? WHERE ID = ?", (data_fim, hora_fim, periodo_id))
+            except Exception as e:
+                print("Erro ao atualizar período:")
+                print(traceback.format_exc())
 
     def obter_periodo_aberto(self):
-        self.abrir_conexao()
-        with self.conexao:
-            self.cursor.execute("SELECT ID, DataInicio, HoraInicio FROM Periodos WHERE DataFim IS NULL")
-            periodo = self.cursor.fetchone()
-            return periodo if periodo else ()
+        try:
+            self.abrir_conexao()
+            with self.conexao:
+                self.cursor.execute("SELECT ID, DataInicio, HoraInicio FROM Periodos WHERE DataFim IS NULL")
+                periodo = self.cursor.fetchone()
+                return periodo if periodo else ()
+        except Exception as e:
+            print("Erro ao obter período aberto:")
+            print(traceback.format_exc())
+            return None
+
     
     def inserir_produto(self, nome, valor, quantidade, data_entrada, hora_entrada, periodo_id):
-        self.abrir_conexao()
-        with self.conexao:
-            self.cursor.execute("INSERT INTO Produtos (Nome, Valor, Quantidade, DataEntrada, HoraEntrada, PeriodoID) VALUES (?, ?, ?, ?, ?, ?)",
-                                (nome, valor, quantidade, data_entrada, hora_entrada, periodo_id))
+        with self.lock:
+            try:
+                self.abrir_conexao()
+                with self.conexao:
+                    self.cursor.execute("INSERT INTO Produtos (Nome, Valor, Quantidade, DataEntrada, HoraEntrada, PeriodoID) VALUES (?, ?, ?, ?, ?, ?)",
+                                        (nome, valor, quantidade, data_entrada, hora_entrada, periodo_id))
+            except Exception as e:
+                print("Erro ao inserir produto:")
+                print(traceback.format_exc())
 
-    def excluir_produto(self, produto_id):
-        self.abrir_conexao()
-        with self.conexao:
-            self.cursor.execute("DELETE FROM Produtos WHERE ID = ?", (produto_id,))
+    def inserir_produto(self, nome, valor, quantidade, data_entrada, hora_entrada, periodo_id):
+        with self.lock:
+            try:
+                self.abrir_conexao()
+                with self.conexao:
+                    self.cursor.execute("INSERT INTO Produtos (Nome, Valor, Quantidade, DataEntrada, HoraEntrada, PeriodoID) VALUES (?, ?, ?, ?, ?, ?)",
+                                        (nome, valor, quantidade, data_entrada, hora_entrada, periodo_id))
+            except Exception as e:
+                print("Erro ao inserir produto:")
+                print(traceback.format_exc())
 
     def obter_produtos_periodo(self, periodo_id):
-        self.abrir_conexao()
-        try:
-            self.cursor.execute(
-                "SELECT * FROM Produtos "
-                "WHERE DataEntrada >= (SELECT DataInicio FROM Periodos WHERE ID = ?) "
-                "AND HoraEntrada >= (SELECT HoraInicio FROM Periodos WHERE ID = ?) "
-                "AND (DataEntrada <= (SELECT DataFim FROM Periodos WHERE ID = ?) OR (SELECT DataFim FROM Periodos WHERE ID = ?) IS NULL) "
-                "AND (HoraEntrada <= (SELECT HoraFim FROM Periodos WHERE ID = ?) OR (SELECT HoraFim FROM Periodos WHERE ID = ?) IS NULL)",
-                (periodo_id, periodo_id, periodo_id, periodo_id, periodo_id, periodo_id)
-            )
-            produtos = self.cursor.fetchall()
-            return produtos
-        except sqlite3.Error as error:
-            print("Erro ao executar a consulta SQL:", error)
-            return []  # Retorna uma lista vazia em caso de erro
-        finally:
-            self.fechar_conexao()
-
-    def obter_id_produto(self, produto, periodo_id):
-        self.abrir_conexao()
-        try:
-            self.cursor.execute("SELECT ID FROM Produtos WHERE Nome = ? AND PeriodoID = ?", (produto, periodo_id))
-            resultado = self.cursor.fetchone()
-            if resultado:
-                return resultado[0]
-            else:
+        with self.lock:
+            try:
+                self.abrir_conexao()
+                self.cursor.execute(
+                    "SELECT * FROM Produtos "
+                    "WHERE DataEntrada >= (SELECT DataInicio FROM Periodos WHERE ID = ?) "
+                    "AND HoraEntrada >= (SELECT HoraInicio FROM Periodos WHERE ID = ?) "
+                    "AND (DataEntrada <= (SELECT DataFim FROM Periodos WHERE ID = ?) OR (SELECT DataFim FROM Periodos WHERE ID = ?) IS NULL) "
+                    "AND (HoraEntrada <= (SELECT HoraFim FROM Periodos WHERE ID = ?) OR (SELECT HoraFim FROM Periodos WHERE ID = ?) IS NULL)",
+                    (periodo_id, periodo_id, periodo_id, periodo_id, periodo_id, periodo_id)
+                )
+                produtos = self.cursor.fetchall()
+                return produtos
+            except Exception as e:
+                print("Erro ao obter produtos do período:")
+                print(traceback.format_exc())
+                return []  # Retorna uma lista vazia em caso de erro
+            
+    def obter_id_produto(self, nome_produto, periodo_id):
+        with self.lock:
+            try:
+                self.abrir_conexao()
+                with self.conexao:
+                    self.cursor.execute("SELECT ID FROM Produtos WHERE Nome = ? AND PeriodoID = ?", (nome_produto, periodo_id))
+                    resultado = self.cursor.fetchone()
+                    if resultado:
+                        return resultado[0]
+                    return None
+            except Exception as e:
+                print("Erro ao obter ID do produto:")
+                print(traceback.format_exc())
                 return None
-        except sqlite3.Error as error:
-            print("Erro ao executar a consulta SQL:", error)
-        finally:
-            self.fechar_conexao()
 
     def verificar_produto_periodo(self, produto_id, data_entrada, hora_entrada):
         self.abrir_conexao()
@@ -100,33 +130,54 @@ class Database:
         return False
                 
     def atualizar_produto(self, produto_id, nome, valor, quantidade):
-        self.abrir_conexao()
-        with self.conexao:
-            self.cursor.execute("UPDATE Produtos SET Nome = ?, Valor = ?, Quantidade = ? WHERE ID = ?",
-                                (nome, valor, quantidade, produto_id))
+        with self.lock:
+            try:
+                print("Produto ID:", produto_id)
+                print("Nome:", nome)
+                print("Valor:", valor)
+                print("Quantidade:", quantidade)
+
+                self.abrir_conexao()
+                with self.conexao:
+                    self.cursor.execute("UPDATE Produtos SET Nome = ?, Valor = ?, Quantidade = ? WHERE ID = ?",
+                                        (nome, valor, quantidade, produto_id))
+            except Exception as e:
+                print("Erro ao atualizar produto:")
+                print(traceback.format_exc())
             
     def registrar_venda(self, data_hora, produto, quantidade, valor_total, periodo_id, produto_id, venda_cortesia):
-        self.abrir_conexao()
-        with self.conexao:
-            self.cursor.execute(
-                "INSERT INTO vendas (data_hora, produto, quantidade, valor_total, periodo_id, produto_id, venda_cortesia) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?)",
-                (data_hora, produto, quantidade, valor_total, periodo_id, produto_id, venda_cortesia)
-            )        
+        with self.lock:
+            try:
+                self.abrir_conexao()
+                with self.conexao:
+                    self.cursor.execute(
+                        "INSERT INTO vendas (data_hora, produto, quantidade, valor_total, periodo_id, produto_id, venda_cortesia) "
+                        "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                        (data_hora, produto, quantidade, valor_total, periodo_id, produto_id, venda_cortesia)
+                    )
+            except Exception as e:
+                print("Erro ao registrar venda:")
+                print(traceback.format_exc())
 
     def obter_dados_completos_produto_por_periodo(self, produto, periodo_id):
-        self.abrir_conexao()
-        with self.conexao:
-            self.cursor.execute(
-                "SELECT Nome, Valor, Quantidade, DataEntrada, HoraEntrada "
-                "FROM Produtos "
-                "WHERE Nome = ? AND PeriodoID = ?",
-                (produto, periodo_id)
-            )
-            resultado = self.cursor.fetchone()
-            if resultado:
-                return resultado
-            else:
+        with self.lock:
+            try:
+                self.abrir_conexao()
+                with self.conexao:
+                    self.cursor.execute(
+                        "SELECT Nome, Valor, Quantidade, DataEntrada, HoraEntrada "
+                        "FROM Produtos "
+                        "WHERE Nome = ? AND PeriodoID = ?",
+                        (produto, periodo_id)
+                    )
+                    resultado = self.cursor.fetchone()
+                    if resultado:
+                        return resultado
+                    else:
+                        return None
+            except Exception as e:
+                print("Erro ao obter dados completos do produto por período:")
+                print(traceback.format_exc())
                 return None
 
 

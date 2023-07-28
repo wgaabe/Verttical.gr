@@ -15,9 +15,10 @@ class Estrutura:
 
     def showload_status_periodo(self):
         periodo_aberto = self.database.obter_periodo_aberto()
-    
-        if periodo_aberto:
+
+        if periodo_aberto and periodo_aberto[0]:  # Verifica se o primeiro elemento da tupla não é None
             periodo_id = periodo_aberto[0]
+            print("PeriodoID:", periodo_id)
             produtos = self.database.obter_produtos_periodo(periodo_id)
             data_inicio = periodo_aberto[1]
             hora_inicio = periodo_aberto[2]
@@ -26,18 +27,16 @@ class Estrutura:
             produtos = []
             status_periodo = "Não existem períodos abertos"
 
-            self.interface.lista_produtos.delete(0, tk.END)
-            
-        if produtos:
-            for produto in produtos:
-                nome = produto[1]
-                valor = produto[2]
-                quantidade = produto[3]
-                produto_formatado = f"Nome: {nome}, Valor: {valor}, Quantidade: {quantidade}"
-                self.interface.lista_produtos.insert(tk.END, produto_formatado)
-        
+        self.interface.tabela_produtos_cadastrados.delete(*self.interface.tabela_produtos_cadastrados.get_children())
+        for produto in produtos:
+            nome = produto[1]
+            valor = produto[2]
+            quantidade = produto[3]
+            produto_formatado = f"Nome: {nome}, Valor: {valor}, Quantidade: {quantidade}"
+            self.interface.tabela_produtos_cadastrados.insert("", tk.END, values=(nome, f"R$ {valor:.2f}", quantidade))
+
         self.interface.status_periodo_label.config(text=status_periodo)
-        
+
 
     def verificar_periodo_aberto(self):
         return self.database.obter_periodo_aberto()
@@ -140,7 +139,7 @@ class Estrutura:
         self.interface.entry_quantidade_edicao.delete(0, tk.END)
 
         # Limpar a lista de produtos
-        self.interface.lista_produtos.delete(0, tk.END)
+        self.interface.tabela_produtos_cadastrados.delete(*self.interface.tabela_produtos_cadastrados.get_children())
 
         # Limpar o combobox de edição
         self.interface.combobox_produtos['values'] = []
