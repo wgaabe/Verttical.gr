@@ -27,6 +27,7 @@ class Interface:
         if messagebox.askokcancel("Fechar Programa", "Deseja realmente sair?"):
             self.janela.destroy()
 
+        
     def executar(self):
         # Configuração da janela principal
         self.janela = tk.Tk()
@@ -191,8 +192,13 @@ class Interface:
         self.botao_adicionar_venda.grid(row=3, column=1, padx=10, pady=5)
 
         #frame lista de vendas
-        self.lista_produtos_venda = tk.Listbox(frame_vendas, width=40, height=10)
-        self.lista_produtos_venda.grid(row=5, column=0, padx=10, pady=5, columnspan=2)
+        # Crie o atributo lista_produtos_venda_tabela aqui dentro do método executar
+        self.lista_produtos_venda_tabela = tk.Frame(frame_vendas, width=10, height=10)
+        self.lista_produtos_venda_tabela.grid(row=5, column=0, padx=10, pady=5, columnspan=2)
+
+        #botão limpar lista, limpa todos os produtos adicionados
+        self.botao_limpar_lista = tk.Button(frame_vendas, text="Limpar Lista", command=self.vendas.limpar_lista_vendas)
+        self.botao_limpar_lista.grid(row=6, column=0, padx=10, pady=5, sticky=tk.E)
 
         # Botão remover produtos da lista 
         self.botao_excluir_venda = tk.Button(frame_vendas, text="Excluir", command=self.vendas.excluir_produto_venda)
@@ -206,23 +212,43 @@ class Interface:
         self.botao_registrar_venda = tk.Button(frame_vendas, text="Registrar Venda", width=15, command=None)
         self.botao_registrar_venda.grid(row=8, column=0, columnspan=2, padx=10, pady=10)
 
+        self.criar_tabela_vendas()
         self.vendas.carregar_produtos_combobox_venda()
         self.vendas.atualizar_quantidade_disponivel()
 
         # Configurar evento para fechar o programa
         self.janela.protocol("WM_DELETE_WINDOW", self.fechar_programa)
 
-
         self.estrutura.showload_status_periodo()  # Verificar o período aberto e exibir produtos
         self.produto.carrega_produtos_combobox()
         
         self.janela.mainloop()
 
+    def criar_tabela_vendas(self):
+        self.tabela_vendas = ttk.Treeview(self.lista_produtos_venda_tabela, columns=("Produto", "Quantidade", "Cortesia", "Valor Unitário", "Valor Total"))
+        self.tabela_vendas.heading("#0", text="ID")  # Coluna oculta para armazenar o índice do produto na lista
+        self.tabela_vendas.heading("Produto", text="Produto")
+        self.tabela_vendas.heading("Quantidade", text="Quantidade")
+        self.tabela_vendas.heading("Cortesia", text="Cortesia")
+        self.tabela_vendas.heading("Valor Unitário", text="Valor Unitário")
+        self.tabela_vendas.heading("Valor Total", text="Valor Total")
+
+        self.tabela_vendas.column("#0", stretch=tk.NO, minwidth=0, width=0)  # Coluna oculta
+        self.tabela_vendas.column("Produto", anchor=tk.W, width=40)
+        self.tabela_vendas.column("Quantidade", anchor=tk.CENTER, width=30)
+        self.tabela_vendas.column("Cortesia", anchor=tk.CENTER, width=50)
+        self.tabela_vendas.column("Valor Unitário", anchor=tk.CENTER, width=70)
+        self.tabela_vendas.column("Valor Total", anchor=tk.CENTER, width=70)
+
+        self.tabela_vendas.grid(row=5, column=0, columnspan=2, padx=10, pady=5)
+
     def adicionar_produto_venda_interface(self):
         produto_selecionado = self.combobox_produtos_venda.get()
         quantidade_selecionada = self.entry_quantidade_venda.get()
         venda_cortesia = self.venda_cortesia_var.get()
+
         self.vendas.adicionar_produto_venda(produto_selecionado, quantidade_selecionada, venda_cortesia)
+
         # Limpar campos após adicionar o produto à lista de vendas
         self.label_quantidade_venda.config(text="")
         self.combobox_produtos_venda.set("")

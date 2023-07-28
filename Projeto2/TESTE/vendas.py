@@ -2,6 +2,7 @@ from datetime import datetime
 from tkinter import messagebox
 from database import Database
 import tkinter as tk
+from tkinter import ttk
 
 class Vendas:
     def __init__(self, interface, controller):
@@ -11,7 +12,8 @@ class Vendas:
         self.interface = controller.interface
         self.produtos_selecionados = []  # Lista para armazenar os produtos selecionados na venda
         self.valor_total_venda = 0.0  # Variável para armazenar o valor total da venda
-
+        self.lista_produtos_venda = []  # Lista para armazenar os produtos da venda
+        self.tabela_vendas_selecionada = None  # Variável para armazenar a venda selecionada na tabela
 
     def registrar_venda(self, produto, quantidade, valor_total, venda_cortesia):
         # Lógica de negócios para registrar a venda
@@ -37,23 +39,33 @@ class Vendas:
         return True
     
     def excluir_produto_venda(self):
-        # Verifica se algum item está selecionado na lista
-        selecionado = self.interface.lista_produtos_venda.curselection()
-
+        selecionado = self.interface.tabela_vendas.selection()
         if selecionado:
-            # Obtém o índice do item selecionado (esse índice pode ser diferente do index passado como argumento)
-            index = selecionado[0]
+            venda_selecionada = self.interface.tabela_vendas.item(selecionado[0])
+            produto_nome = venda_selecionada["values"][0]
+            produto_selecionado = None
 
-            # Exclui o item da lista gráfica
-            self.interface.lista_produtos_venda.delete(index)
+            # Procura o produto selecionado na lista de produtos
+            for produto in self.produtos_selecionados:
+                if produto["nome"] == produto_nome:
+                    produto_selecionado = produto
+                    break
 
-            # Exclui o item da lista de produtos selecionados
-            del self.produtos_selecionados[index]
-
-            # Atualiza o valor total da venda após a exclusão
-            self.atualizar_total_venda()
+            if produto_selecionado:
+                # Confirmação antes de excluir o produto da venda
+                resposta = messagebox.askyesno("Excluir Produto",
+                                            f"Deseja excluir o produto '{produto_nome}' da venda?")
+                if resposta:
+                    self.produtos_selecionados.remove(produto_selecionado)
+                    self.exibir_itens_venda()
+                    self.atualizar_total_venda()
+                else:
+                    messagebox.showinfo("Exclusão Cancelada", "A exclusão do produto foi cancelada.")
+            else:
+                messagebox.showwarning("Produto não encontrado",
+                                    "O produto selecionado não foi encontrado na lista de produtos da venda.")
         else:
-            messagebox.showwarning("Selecione um produto", "Selecione um produto na lista para excluir.")
+            messagebox.showwarning("Nenhum Produto Selecionado", "Selecione um produto na lista para excluir.")
 
 
     def atualizar_total_venda(self):
@@ -64,13 +76,12 @@ class Vendas:
         self.interface.label_total_venda.config(text=f"Total da Venda: R$ {total_venda:.2f}")
 
     def exibir_itens_venda(self):
-        self.interface.lista_produtos_venda.delete(0, tk.END)  # Limpa a listbox
+        # Limpar a tabela antes de exibir os itens
+        self.limpar_tabela_vendas()
 
+        # Exibir os produtos da venda na tabela
         for produto in self.produtos_selecionados:
-            # Formatando a quantidade como inteiro
-            quantidade_formatada = int(produto['quantidade'])
-            item_formatado = f"QTD: {quantidade_formatada} | CORTESIA: {'Sim' if produto['cortesia'] else 'Não'} | ITEM: {produto['nome']} | VL-UNITARIO: R$ {produto['valor_unitario']:.2f} | VL-TOTAL: R$ {produto['valor_total_produto']:.2f}"
-            self.interface.lista_produtos_venda.insert(tk.END, item_formatado)
+            self.interface.tabela_vendas.insert("", tk.END, values=(produto["nome"], produto["quantidade"], "Sim" if produto["cortesia"] else "Não", produto["valor_unitario"], produto["valor_total_produto"]))
 
         # Atualiza o valor total da venda após exibir os itens
         self.atualizar_total_venda()
@@ -91,12 +102,11 @@ class Vendas:
                 if dados_produto:
                     nome_produto, valor_produto, quantidade_produto, _, _ = dados_produto
                     valor_total_produto = valor_produto * quantidade_selecionada
-                    venda_cortesia = self.interface.venda_cortesia_var.get()  # Verifica se é uma venda cortesia
-                    print (venda_cortesia)
+
                     produto = {
                         "nome": produto_selecionado,
                         "quantidade": quantidade_selecionada,
-                        "cortesia": venda_cortesia,
+                        "cortesia": self.interface.venda_cortesia_var.get(),  # Verifica se é uma venda cortesia
                         "valor_unitario": valor_produto,
                         "valor_total_produto": valor_total_produto
                     }
@@ -104,6 +114,7 @@ class Vendas:
                     self.produtos_selecionados.append(produto)
                     self.interface.label_quantidade_venda.config(text="")
                     self.interface.combobox_produtos_venda.set("")
+                    self.interface.venda_cortesia_var.set(False)  # Desmarca a caixa de seleção "Venda Cortesia"
                     self.interface.entry_quantidade_venda.delete(0, tk.END)
                     self.exibir_itens_venda()  # Atualiza a exibição na lista de vendas
                     self.atualizar_total_venda()  # Atualiza o total geral da venda
@@ -116,7 +127,7 @@ class Vendas:
 
     def carregar_produtos_combobox_venda(self):
         self.interface.combobox_produtos_venda['values'] = []
-        self.interface.lista_produtos_venda.delete(0, tk.END)  # Limpar a lista de produtos selecionados
+        #self.interface.lista_produtos_venda_tabela.delete(0, tk.END)  # Limpar a lista de produtos selecionados
         periodo_aberto = self.controller.obter_periodo_aberto()
         if periodo_aberto:
             periodo_id = periodo_aberto[0]
@@ -129,6 +140,10 @@ class Vendas:
                 messagebox.showwarning("Produtos não encontrados", "Não há produtos cadastrados para o período em aberto.")
         else:
             messagebox.showwarning("Período não encontrado", "Não há período de vendas aberto.")
+
+    def limpar_tabela_vendas(self):
+        for item in self.interface.tabela_vendas.get_children():
+            self.interface.tabela_vendas.delete(item)
 
     def atualizar_quantidade_disponivel(self, event=None):
         produto_selecionado = self.interface.combobox_produtos_venda.get()
@@ -154,6 +169,19 @@ class Vendas:
             periodo_id = periodo_aberto[0]
             return self.controller.obter_valor_produto(produto, periodo_id)
         return None
+    
+    def limpar_lista_vendas(self):
+        # Limpar a lista de produtos selecionados
+        self.produtos_selecionados.clear()
+
+        # Zerar o total de vendas
+        self.valor_total_venda = 0.0
+
+        # Limpar a tabela de itens da venda
+        self.exibir_itens_venda()
+
+        # Atualizar o total da venda na interface
+        self.atualizar_total_venda()
     
     def is_numero(self, valor):
         try:
