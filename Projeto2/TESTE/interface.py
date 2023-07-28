@@ -197,7 +197,7 @@ class Interface:
         self.lista_produtos_venda_tabela.grid(row=5, column=0, padx=10, pady=5, columnspan=2)
 
         #botão limpar lista, limpa todos os produtos adicionados
-        self.botao_limpar_lista = tk.Button(frame_vendas, text="Limpar Lista", command=self.vendas.limpar_lista_vendas)
+        self.botao_limpar_lista = tk.Button(frame_vendas, text="Limpar Lista", command=self.vendas.limpar_toda_lista_vendas)
         self.botao_limpar_lista.grid(row=6, column=0, padx=10, pady=5, sticky=tk.E)
 
         # Botão remover produtos da lista 

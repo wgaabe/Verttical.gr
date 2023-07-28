@@ -170,18 +170,19 @@ class Vendas:
             return self.controller.obter_valor_produto(produto, periodo_id)
         return None
     
-    def limpar_lista_vendas(self):
-        # Limpar a lista de produtos selecionados
-        self.produtos_selecionados.clear()
+    def limpar_toda_lista_vendas(self):
+        if messagebox.askokcancel("Limpar Lista de Vendas", "Deseja realmente limpar a lista de vendas?"):
+            # Limpar a lista de produtos selecionados
+            self.produtos_selecionados = []
 
-        # Zerar o total de vendas
-        self.valor_total_venda = 0.0
+            # Limpar a exibição dos itens na lista de vendas na interface
+            self.limpar_tabela_vendas()
 
-        # Limpar a tabela de itens da venda
-        self.exibir_itens_venda()
+            # Zerar o valor total da venda na interface
+            self.interface.label_total_venda.config(text="Total da Venda: R$ 0.00")
 
-        # Atualizar o total da venda na interface
-        self.atualizar_total_venda()
+            # Desmarcar a opção de venda cortesia na interface
+            self.interface.venda_cortesia_var.set(False)
     
     def is_numero(self, valor):
         try:
