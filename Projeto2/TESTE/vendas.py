@@ -10,6 +10,8 @@ class Vendas:
         self.database = controller.database
         self.interface = controller.interface
         self.produtos_selecionados = []  # Lista para armazenar os produtos selecionados na venda
+        self.valor_total_venda = 0.0  # Variável para armazenar o valor total da venda
+
 
     def registrar_venda(self, produto, quantidade, valor_total, venda_cortesia):
         # Lógica de negócios para registrar a venda
@@ -35,14 +37,31 @@ class Vendas:
         return True
     
     def excluir_produto_venda(self):
+        # Verifica se algum item está selecionado na lista
         selecionado = self.interface.lista_produtos_venda.curselection()
 
         if selecionado:
+            # Obtém o índice do item selecionado (esse índice pode ser diferente do index passado como argumento)
             index = selecionado[0]
+
+            # Exclui o item da lista gráfica
             self.interface.lista_produtos_venda.delete(index)
+
+            # Exclui o item da lista de produtos selecionados
             del self.produtos_selecionados[index]
+
+            # Atualiza o valor total da venda após a exclusão
+            self.atualizar_total_venda()
         else:
             messagebox.showwarning("Selecione um produto", "Selecione um produto na lista para excluir.")
+
+
+    def atualizar_total_venda(self):
+        total_venda = 0
+        for produto in self.produtos_selecionados:
+            if not produto["cortesia"]:
+                total_venda += produto["valor_total_produto"]
+        self.interface.label_total_venda.config(text=f"Total da Venda: R$ {total_venda:.2f}")
 
     def exibir_itens_venda(self):
         self.interface.lista_produtos_venda.delete(0, tk.END)  # Limpa a listbox
@@ -50,34 +69,50 @@ class Vendas:
         for produto in self.produtos_selecionados:
             # Formatando a quantidade como inteiro
             quantidade_formatada = int(produto['quantidade'])
-            item_formatado = f"QTD: {quantidade_formatada} | CORTESIA: {'Sim' if produto['cortesia'] else 'Não'} | ITEM: {produto['nome']}"
+            item_formatado = f"QTD: {quantidade_formatada} | CORTESIA: {'Sim' if produto['cortesia'] else 'Não'} | ITEM: {produto['nome']} | VL-UNITARIO: R$ {produto['valor_unitario']:.2f} | VL-TOTAL: R$ {produto['valor_total_produto']:.2f}"
             self.interface.lista_produtos_venda.insert(tk.END, item_formatado)
 
-    def adicionar_produto_venda(self):
+        # Atualiza o valor total da venda após exibir os itens
+        self.atualizar_total_venda()
+
+
+    def adicionar_produto_venda(self,produto_selecionado, quantidade_selecionada, venda_cortesia):
         produto_selecionado = self.interface.combobox_produtos_venda.get()
         quantidade_selecionada = self.interface.entry_quantidade_venda.get()
 
-        # Verifica se a quantidade é um número válido inteiro
-        if self.is_int(quantidade_selecionada):
-            quantidade_selecionada = int(quantidade_selecionada)  # Converter para inteiro
+        # Verifica se a quantidade é um número válido
+        if self.is_numero(quantidade_selecionada):
+            quantidade_selecionada = float(quantidade_selecionada)
             if quantidade_selecionada > 0:
-                venda_cortesia = self.interface.venda_cortesia_var.get()  # Verifica se é uma venda cortesia
+                # Corrigir a chamada da função obter_dados_produto_por_periodo para incluir o período_id correto
+                periodo_id = self.controller.obter_id_periodo_aberto()[0]  # Obter o ID do período aberto
+                dados_produto = self.controller.obter_dados_produto_por_periodo(produto_selecionado, periodo_id)
 
-                produto = {
-                    "nome": produto_selecionado,
-                    "quantidade": quantidade_selecionada,
-                    "cortesia": venda_cortesia  # Inclui a informação se a venda é uma cortesia ou não
-                }
+                if dados_produto:
+                    nome_produto, valor_produto, quantidade_produto, _, _ = dados_produto
+                    valor_total_produto = valor_produto * quantidade_selecionada
+                    venda_cortesia = self.interface.venda_cortesia_var.get()  # Verifica se é uma venda cortesia
+                    print (venda_cortesia)
+                    produto = {
+                        "nome": produto_selecionado,
+                        "quantidade": quantidade_selecionada,
+                        "cortesia": venda_cortesia,
+                        "valor_unitario": valor_produto,
+                        "valor_total_produto": valor_total_produto
+                    }
 
-                self.produtos_selecionados.append(produto)
-                self.interface.label_quantidade_venda.config(text="")
-                self.interface.combobox_produtos_venda.set("")
-                self.interface.entry_quantidade_venda.delete(0, tk.END)
-                self.exibir_itens_venda()  # Atualiza a exibição na lista de vendas
+                    self.produtos_selecionados.append(produto)
+                    self.interface.label_quantidade_venda.config(text="")
+                    self.interface.combobox_produtos_venda.set("")
+                    self.interface.entry_quantidade_venda.delete(0, tk.END)
+                    self.exibir_itens_venda()  # Atualiza a exibição na lista de vendas
+                    self.atualizar_total_venda()  # Atualiza o total geral da venda
+                else:
+                    messagebox.showwarning("Produto não encontrado", "O produto selecionado não foi encontrado para o período em aberto.")
             else:
                 messagebox.showwarning("Quantidade Inválida", "A quantidade deve ser maior que zero.")
         else:
-            messagebox.showwarning("Quantidade Inválida", "Digite uma quantidade válida (número inteiro).")
+            messagebox.showwarning("Quantidade Inválida", "Digite uma quantidade válida (número).")
 
     def carregar_produtos_combobox_venda(self):
         self.interface.combobox_produtos_venda['values'] = []

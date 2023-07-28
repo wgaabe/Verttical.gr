@@ -152,6 +152,14 @@ class Controller:
 
     def obter_valor_produto(self, produto, periodo_id):
         return self.database.obter_valor_produto(produto, periodo_id)
+    
+    def obter_dados_produto(self, produto, periodo_id):
+        return self.database.obter_dados_completos_produto(produto, periodo_id)
+    
+    def obter_dados_produto_por_periodo(self, produto, periodo_id):
+        return self.database.obter_dados_completos_produto_por_periodo(produto, periodo_id)
+
+
 
 
     # Outros métodos úteis, se necessário

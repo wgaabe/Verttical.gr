@@ -113,7 +113,23 @@ class Database:
                 "VALUES (?, ?, ?, ?, ?, ?, ?)",
                 (data_hora, produto, quantidade, valor_total, periodo_id, produto_id, venda_cortesia)
             )        
-            
+
+    def obter_dados_completos_produto_por_periodo(self, produto, periodo_id):
+        self.abrir_conexao()
+        with self.conexao:
+            self.cursor.execute(
+                "SELECT Nome, Valor, Quantidade, DataEntrada, HoraEntrada "
+                "FROM Produtos "
+                "WHERE Nome = ? AND PeriodoID = ?",
+                (produto, periodo_id)
+            )
+            resultado = self.cursor.fetchone()
+            if resultado:
+                return resultado
+            else:
+                return None
+
+
     def obter_quantidade_produto(self, produto_id):
         self.abrir_conexao()
         with self.conexao:

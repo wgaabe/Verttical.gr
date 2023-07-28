@@ -21,8 +21,7 @@ class Interface:
         self.produto = Produto(self, self.controller)
         self.estrutura = Estrutura(self, self.controller)
         self.vendas = Vendas(self, self.controller)
-
-        
+       
 
     def fechar_programa(self):
         if messagebox.askokcancel("Fechar Programa", "Deseja realmente sair?"):
@@ -188,7 +187,7 @@ class Interface:
         checkbox_venda_cortesia.grid(row=3, column=0, columnspan=2, padx=10, pady=5, sticky=tk.W)
 
         # Botão Adicionar vendas a lista de vendas
-        self.botao_adicionar_venda = tk.Button(frame_vendas, text="Adicionar", command=self.vendas.adicionar_produto_venda)
+        self.botao_adicionar_venda = tk.Button(frame_vendas, text="Adicionar", command=self.adicionar_produto_venda_interface)
         self.botao_adicionar_venda.grid(row=3, column=1, padx=10, pady=5)
 
         #frame lista de vendas
@@ -199,9 +198,13 @@ class Interface:
         self.botao_excluir_venda = tk.Button(frame_vendas, text="Excluir", command=self.vendas.excluir_produto_venda)
         self.botao_excluir_venda.grid(row=6, column=1, padx=10, pady=5)
 
+        # Crie um label para exibir o valor total da venda na interface
+        self.label_total_venda = tk.Label(frame_vendas, text="Total da Venda: R$ 0.00")
+        self.label_total_venda.grid(row=7, column=0, columnspan=2, padx=10, pady=5)
+
         # Botão Registrar Venda
         self.botao_registrar_venda = tk.Button(frame_vendas, text="Registrar Venda", width=15, command=None)
-        self.botao_registrar_venda.grid(row=7, column=0, columnspan=2, padx=10, pady=10)
+        self.botao_registrar_venda.grid(row=8, column=0, columnspan=2, padx=10, pady=10)
 
         self.vendas.carregar_produtos_combobox_venda()
         self.vendas.atualizar_quantidade_disponivel()
@@ -209,41 +212,23 @@ class Interface:
         # Configurar evento para fechar o programa
         self.janela.protocol("WM_DELETE_WINDOW", self.fechar_programa)
 
-        # Configurar o botão "Registrar Venda" para chamar o método de registro de venda
-        self.botao_registrar_venda.config(command=self.registrar_venda_interface)
 
         self.estrutura.showload_status_periodo()  # Verificar o período aberto e exibir produtos
         self.produto.carrega_produtos_combobox()
         
         self.janela.mainloop()
 
-    def registrar_venda_interface(self):
+    def adicionar_produto_venda_interface(self):
         produto_selecionado = self.combobox_produtos_venda.get()
-        quantidade = self.entry_quantidade_venda.get()
+        quantidade_selecionada = self.entry_quantidade_venda.get()
         venda_cortesia = self.venda_cortesia_var.get()
+        self.vendas.adicionar_produto_venda(produto_selecionado, quantidade_selecionada, venda_cortesia)
+        # Limpar campos após adicionar o produto à lista de vendas
+        self.label_quantidade_venda.config(text="")
+        self.combobox_produtos_venda.set("")
+        self.entry_quantidade_venda.delete(0, tk.END)
 
-        # Verificar se a quantidade é um número inteiro
-        try:
-            quantidade = int(quantidade)
-        except ValueError:
-            messagebox.showwarning("Quantidade inválida", "A quantidade deve ser um número inteiro.")
-            return
-
-        # Realizar a chamada do método registrar_venda da classe Vendas
-        if produto_selecionado and quantidade:
-            # Obter o valor unitário do produto selecionado
-            valor_unitario = self.vendas.obter_valor_produto(produto_selecionado)
-            if valor_unitario is not None:
-                valor_total = valor_unitario * quantidade
-                if self.vendas.registrar_venda(produto_selecionado, quantidade, valor_total, venda_cortesia, valor_unitario):
-                    # Atualizar a interface após registrar a venda
-                    self.produto.carrega_produtos_combobox()
-                    self.vendas.carregar_produtos_combobox_venda()
-                    self.vendas.atualizar_quantidade_disponivel()
-            else:
-                messagebox.showwarning("Produto não encontrado", "O produto selecionado não foi encontrado no período atual.")
-        else:
-            messagebox.showwarning("Campos obrigatórios", "Por favor, preencha todos os campos obrigatórios.")
+        self.vendas.atualizar_total_venda()  # Atualiza o valor total da venda na interface
 
 if __name__ == "__main__":
     # Instanciação da interface e execução do programa
