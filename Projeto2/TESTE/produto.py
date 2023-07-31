@@ -52,10 +52,10 @@ class Produto:
                     self.interface.entry_nome_edicao.delete(0, tk.END)
                     self.interface.entry_valor_edicao.delete(0, tk.END)
                     self.interface.entry_quantidade_edicao.delete(0, tk.END)
-                    self.interface.lista_produtos.delete(0, tk.END)  # Limpar lista de produtos
+                    self.interface.tabela_produtos_cadastrados.delete(*self.interface.tabela_produtos_cadastrados.get_children())  # Limpar tabela de produtos cadastrados
                     self.interface.label_cadastro_info_data.config(text="")
                     self.interface.label_cadastro_info_hora.config(text="")
-                    self.exibir_produtos()  # Carregar novos dados de produtos
+                    self.interface.atualizar_tabela_produtos_cadastrados()  # Atualizar a tabela de produtos cadastrados
                     self.carrega_produtos_combobox()  # Carregar novos dados na combobox
                     self.interface.vendas.carregar_produtos_combobox_venda()  # Atualizar a ComboBox de produtos na tela de vendas
                 else:

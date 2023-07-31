@@ -17,25 +17,20 @@ class Vendas:
 
     def registrar_venda(self, produto, quantidade, valor_total, venda_cortesia):
         # Lógica de negócios para registrar a venda
-
         # Obter o ID do período aberto
         periodo_aberto = self.controller.obter_id_periodo_aberto()
         if not periodo_aberto:
             # Não há período aberto para registrar a venda
             return False
-
         periodo_id = periodo_aberto[0]
-
         # Obter o ID do produto
         produto_id = self.controller.obter_id_produto_por_nome(produto, periodo_id)
         if not produto_id:
             # Produto não encontrado
             return False
-
         # Registrar a venda no banco de dados
         data_hora_atual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.controller.registrar_venda(data_hora_atual, produto, quantidade, valor_total, periodo_id, venda_cortesia, produto_id)
-
         return True
     
     def excluir_produto_venda(self):
@@ -67,7 +62,6 @@ class Vendas:
         else:
             messagebox.showwarning("Nenhum Produto Selecionado", "Selecione um produto na lista para excluir.")
 
-
     def atualizar_total_venda(self):
         total_venda = 0
         for produto in self.produtos_selecionados:
@@ -82,10 +76,8 @@ class Vendas:
         # Exibir os produtos da venda na tabela
         for produto in self.produtos_selecionados:
             self.interface.tabela_vendas.insert("", tk.END, values=(produto["nome"], produto["quantidade"], "Sim" if produto["cortesia"] else "Não", produto["valor_unitario"], produto["valor_total_produto"]))
-
         # Atualiza o valor total da venda após exibir os itens
         self.atualizar_total_venda()
-
 
     def adicionar_produto_venda(self,produto_selecionado, quantidade_selecionada, venda_cortesia):
         produto_selecionado = self.interface.combobox_produtos_venda.get()
@@ -110,7 +102,6 @@ class Vendas:
                         "valor_unitario": valor_produto,
                         "valor_total_produto": valor_total_produto
                     }
-
                     self.produtos_selecionados.append(produto)
                     self.interface.label_quantidade_venda.config(text="")
                     self.interface.combobox_produtos_venda.set("")
@@ -162,7 +153,6 @@ class Vendas:
                 self.interface.label_quantidade_venda.config(text="")
         else:
             self.interface.label_quantidade_venda.config(text="")
-        
 
     def obter_valor_produto(self, produto):
         periodo_aberto = self.controller.obter_id_periodo_aberto()
@@ -175,13 +165,10 @@ class Vendas:
         if messagebox.askokcancel("Limpar Lista de Vendas", "Deseja realmente limpar a lista de vendas?"):
             # Limpar a lista de produtos selecionados
             self.produtos_selecionados = []
-
             # Limpar a exibição dos itens na lista de vendas na interface
             self.limpar_tabela_vendas()
-
             # Zerar o valor total da venda na interface
             self.interface.label_total_venda.config(text="Total da Venda: R$ 0.00")
-
             # Desmarcar a opção de venda cortesia na interface
             self.interface.venda_cortesia_var.set(False)
     

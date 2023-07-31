@@ -63,6 +63,17 @@ class Database:
             print(traceback.format_exc())
             return None
 
+    def excluir_produto(self, produto_id):
+        with self.lock:
+            try:
+                self.abrir_conexao()
+                self.cursor.execute("DELETE FROM Produtos WHERE ID = ?", (produto_id,))
+                self.conexao.commit()
+            except Exception as e:
+                print("Erro ao excluir produto:")
+                print(traceback.format_exc())
+            finally:
+                self.fechar_conexao()
     
     def inserir_produto(self, nome, valor, quantidade, data_entrada, hora_entrada, periodo_id):
         with self.lock:
