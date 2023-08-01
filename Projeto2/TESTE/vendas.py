@@ -14,6 +14,7 @@ class Vendas:
         self.valor_total_venda = 0.0  # Variável para armazenar o valor total da venda
         self.lista_produtos_venda = []  # Lista para armazenar os produtos da venda
         self.tabela_vendas_selecionada = None  # Variável para armazenar a venda selecionada na tabela
+        self.interface = interface
 
     def registrar_venda(self, produto, quantidade, valor_total, venda_cortesia):
         # Lógica de negócios para registrar a venda
@@ -79,42 +80,53 @@ class Vendas:
         # Atualiza o valor total da venda após exibir os itens
         self.atualizar_total_venda()
 
-    def adicionar_produto_venda(self,produto_selecionado, quantidade_selecionada, venda_cortesia):
-        produto_selecionado = self.interface.combobox_produtos_venda.get()
-        quantidade_selecionada = self.interface.entry_quantidade_venda.get()
-
+    def adicionar_produto_venda(self, produto_selecionado, quantidade_selecionada, venda_cortesia):
         # Verifica se a quantidade é um número válido
         if self.is_numero(quantidade_selecionada):
             quantidade_selecionada = float(quantidade_selecionada)
             if quantidade_selecionada > 0:
-                # Corrigir a chamada da função obter_dados_produto_por_periodo para incluir o período_id correto
-                periodo_id = self.controller.obter_id_periodo_aberto()[0]  # Obter o ID do período aberto
-                dados_produto = self.controller.obter_dados_produto_por_periodo(produto_selecionado, periodo_id)
-
-                if dados_produto:
-                    nome_produto, valor_produto, quantidade_produto, _, _ = dados_produto
-                    valor_total_produto = valor_produto * quantidade_selecionada
-
-                    produto = {
-                        "nome": produto_selecionado,
-                        "quantidade": quantidade_selecionada,
-                        "cortesia": self.interface.venda_cortesia_var.get(),  # Verifica se é uma venda cortesia
-                        "valor_unitario": valor_produto,
-                        "valor_total_produto": valor_total_produto
-                    }
-                    self.produtos_selecionados.append(produto)
-                    self.interface.label_quantidade_venda.config(text="")
-                    self.interface.combobox_produtos_venda.set("")
-                    self.interface.venda_cortesia_var.set(False)  # Desmarca a caixa de seleção "Venda Cortesia"
-                    self.interface.entry_quantidade_venda.delete(0, tk.END)
-                    self.exibir_itens_venda()  # Atualiza a exibição na lista de vendas
-                    self.atualizar_total_venda()  # Atualiza o total geral da venda
+                # Obter o período em aberto
+                periodo_aberto = self.controller.obter_id_periodo_aberto()
+                if periodo_aberto:
+                    periodo_id = periodo_aberto[0]  # Extrai o PeriodoID da tupla
+                    # Obter o estoque disponível do produto selecionado considerando o período em aberto
+                    produto_id = self.controller.obter_id_produto(produto_selecionado, periodo_id)
+                    if produto_id is not None:
+                        estoque_disponivel = self.controller.obter_estoque_disponivel(produto_id, periodo_id)  # Passar o periodo_id aqui
+                        if estoque_disponivel is not None and quantidade_selecionada <= estoque_disponivel:
+                            # Corrigir a chamada da função obter_dados_produto_por_periodo para incluir o período_id correto
+                            dados_produto = self.controller.obter_dados_produto_por_periodo(produto_selecionado, periodo_id)
+                            if dados_produto:
+                                nome_produto, valor_produto, quantidade_produto, _, _ = dados_produto
+                                valor_total_produto = valor_produto * quantidade_selecionada
+                                produto = {
+                                    "nome": produto_selecionado,
+                                    "quantidade": quantidade_selecionada,
+                                    "cortesia": venda_cortesia,  # Verifica se é uma venda cortesia
+                                    "valor_unitario": valor_produto,
+                                    "valor_total_produto": valor_total_produto
+                                }
+                                self.produtos_selecionados.append(produto)
+                                self.interface.label_quantidade_venda.config(text="")
+                                self.interface.combobox_produtos_venda.set("")
+                                self.interface.venda_cortesia_var.set(False)  # Desmarca a caixa de seleção "Venda Cortesia"
+                                self.interface.entry_quantidade_venda.delete(0, tk.END)
+                                self.exibir_itens_venda()  # Atualiza a exibição na lista de vendas
+                                self.atualizar_total_venda()  # Atualiza o total geral da venda
+                            else:
+                                messagebox.showwarning("Produto não encontrado", "O produto selecionado não foi encontrado para o período em aberto.")
+                        else:
+                            messagebox.showwarning("Quantidade Inválida", f"A quantidade informada ({quantidade_selecionada}) não está disponível no estoque do produto selecionado.\nQuantidade em estoque: {estoque_disponivel}")
+                    else:
+                        messagebox.showwarning("Produto não encontrado", "O produto selecionado não foi encontrado para o período em aberto.")
                 else:
-                    messagebox.showwarning("Produto não encontrado", "O produto selecionado não foi encontrado para o período em aberto.")
+                    messagebox.showwarning("Período não Iniciado", "Não há período em aberto. Inicie um período antes de adicionar produtos à venda.")
             else:
                 messagebox.showwarning("Quantidade Inválida", "A quantidade deve ser maior que zero.")
         else:
             messagebox.showwarning("Quantidade Inválida", "Digite uma quantidade válida (número).")
+
+    # Resto do código da classe Vendas
 
     def carregar_produtos_combobox_venda(self):
         self.interface.combobox_produtos_venda['values'] = []
@@ -135,7 +147,7 @@ class Vendas:
 
     def limpar_tabela_vendas(self):
         for item in self.interface.tabela_vendas.get_children():
-            self.interface.tabela_vendas.delete(item)
+            self.interface.tabela_vendas.delete(item)  
 
     def atualizar_quantidade_disponivel(self, event=None):
         produto_selecionado = self.interface.combobox_produtos_venda.get()
@@ -171,7 +183,26 @@ class Vendas:
             self.interface.label_total_venda.config(text="Total da Venda: R$ 0.00")
             # Desmarcar a opção de venda cortesia na interface
             self.interface.venda_cortesia_var.set(False)
-    
+
+    def limpar_itens_venda(self):
+        self.limpar_tabela_vendas()    
+
+    def limpar_campos_vendas_finalizar_periodo(self):
+        # Limpar a lista de produtos selecionados
+        self.produtos_selecionados = []
+        # Limpar a exibição dos itens na lista de vendas na interface
+        self.limpar_tabela_vendas()  # Atualize aqui o nome da função corretamente
+        # Zerar o valor total da venda na interface
+        self.interface.label_total_venda.config(text="Total da Venda: R$ 0.00")
+        # Desmarcar a opção de venda cortesia na interface
+        self.interface.venda_cortesia_var.set(False)
+        # Limpar a ComboBox de produtos
+        self.interface.combobox_produtos_venda.set("")
+        # Limpar o campo de quantidade
+        self.interface.entry_quantidade_venda.delete(0, tk.END)
+        # Limpar a label de quantidade disponível
+        self.interface.label_quantidade_venda.config(text="")
+      
     def is_numero(self, valor):
         try:
             float(valor)

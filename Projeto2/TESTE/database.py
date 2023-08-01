@@ -97,17 +97,39 @@ class Database:
                 print("Erro ao inserir produto:")
                 print(traceback.format_exc())
 
+    def obter_estoque_disponivel(self, nome_produto, periodo_id):
+        produto_id = self.obter_id_produto(nome_produto, periodo_id)
+        if produto_id:
+            query = "SELECT quantidade FROM produtos WHERE id = ?"
+            self.cursor.execute(query, (produto_id,))
+            resultado = self.cursor.fetchone()
+            if resultado:
+                estoque_disponivel = resultado[0]
+                return estoque_disponivel
+        return None            
+
     def obter_produtos_periodo(self, periodo_id):
         with self.lock:
             try:
                 self.abrir_conexao()
                 self.cursor.execute(
                     "SELECT * FROM Produtos "
-                    "WHERE DataEntrada >= (SELECT DataInicio FROM Periodos WHERE ID = ?) "
-                    "AND HoraEntrada >= (SELECT HoraInicio FROM Periodos WHERE ID = ?) "
-                    "AND (DataEntrada <= (SELECT DataFim FROM Periodos WHERE ID = ?) OR (SELECT DataFim FROM Periodos WHERE ID = ?) IS NULL) "
-                    "AND (HoraEntrada <= (SELECT HoraFim FROM Periodos WHERE ID = ?) OR (SELECT HoraFim FROM Periodos WHERE ID = ?) IS NULL)",
-                    (periodo_id, periodo_id, periodo_id, periodo_id, periodo_id, periodo_id)
+                    "WHERE PeriodoID = ? "
+                    "AND ("
+                    "   DataEntrada > (SELECT DataInicio FROM Periodos WHERE ID = ?) "
+                    "   OR ("
+                    "       DataEntrada = (SELECT DataInicio FROM Periodos WHERE ID = ?) "
+                    "       AND HoraEntrada >= (SELECT HoraInicio FROM Periodos WHERE ID = ?) "
+                    "   )"
+                    ") "
+                    "AND ("
+                    "   DataEntrada < IFNULL((SELECT DataFim FROM Periodos WHERE ID = ?), DATE('now')) "
+                    "   OR ("
+                    "       DataEntrada = IFNULL((SELECT DataFim FROM Periodos WHERE ID = ?), DATE('now')) "
+                    "       AND HoraEntrada <= IFNULL((SELECT HoraFim FROM Periodos WHERE ID = ?), TIME('now')) "
+                    "   )"
+                    ")",
+                    (periodo_id, periodo_id, periodo_id, periodo_id, periodo_id, periodo_id, periodo_id)
                 )
                 produtos = self.cursor.fetchall()
                 return produtos
@@ -115,6 +137,11 @@ class Database:
                 print("Erro ao obter produtos do período:")
                 print(traceback.format_exc())
                 return []  # Retorna uma lista vazia em caso de erro
+
+
+
+
+
             
     def obter_id_produto(self, nome_produto, periodo_id):
         with self.lock:
@@ -130,6 +157,22 @@ class Database:
                 print("Erro ao obter ID do produto:")
                 print(traceback.format_exc())
                 return None
+            
+    def obter_estoque_disponivel(self, produto_id, periodo_id):
+        with self.lock:
+            try:
+                self.abrir_conexao()
+                with self.conexao:
+                    self.cursor.execute("SELECT Quantidade FROM Produtos WHERE ID = ? AND PeriodoID = ?", (produto_id, periodo_id))
+                    resultado = self.cursor.fetchone()
+                    if resultado:
+                        return resultado[0]
+                    return None
+            except Exception as e:
+                print("Erro ao obter estoque disponível do produto:")
+                print(traceback.format_exc())
+                return None
+
 
     def verificar_produto_periodo(self, produto_id, data_entrada, hora_entrada):
         self.abrir_conexao()

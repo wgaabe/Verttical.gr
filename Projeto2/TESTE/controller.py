@@ -8,14 +8,13 @@ from database import Database
 class Controller:
     def __init__(self, database):
         self.database = database
-        self.interface = None 
+        self.interface = None
 
     def set_interface(self, interface):
         self.interface = interface
 
     def showload_status_periodo(self):
         periodo_aberto = self.database.obter_periodo_aberto()
-
         if periodo_aberto:
             periodo_id = periodo_aberto[0]
             produtos = self.database.obter_produtos_periodo(periodo_id)  # Adicionando o argumento periodo_id aqui
@@ -25,9 +24,7 @@ class Controller:
         else:
             produtos = []
             status_periodo = "Não existem períodos abertos"
-
         self.interface.lista_produtos.delete(0, tk.END)
-
         if produtos:
             for produto in produtos:
                 nome = produto[1]
@@ -35,7 +32,6 @@ class Controller:
                 quantidade = produto[3]
                 produto_formatado = f"Nome: {nome}, Valor: {valor}, Quantidade: {quantidade}"
                 self.interface.lista_produtos.insert(tk.END, produto_formatado)
-
         self.interface.status_periodo_label.config(text=status_periodo)
 
     def iniciar_periodo(self):
@@ -156,7 +152,12 @@ class Controller:
     def obter_dados_produto_por_periodo(self, produto, periodo_id):
         return self.database.obter_dados_completos_produto_por_periodo(produto, periodo_id)
 
+    def obter_estoque_disponivel(self, produto_id, periodo_id):
+        return self.database.obter_estoque_disponivel(produto_id, periodo_id)
 
+    def obter_id_produto(self, nome_produto, periodo_id):
+        return self.database.obter_id_produto(nome_produto, periodo_id)
+    
 
 
     # Outros métodos úteis, se necessário

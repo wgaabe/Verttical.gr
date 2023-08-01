@@ -127,6 +127,7 @@ class Estrutura:
                 self.database.atualizar_periodo(periodo_id, data, hora)
                 messagebox.showinfo("Período Finalizado", "O período foi finalizado com sucesso!")
                 self.clear_interface_values()
+                self.controller.limpar_lista_vendas()
             else:
                 messagebox.showwarning("Período não Iniciado", "Não há período em aberto para finalizar.")
 
@@ -141,6 +142,9 @@ class Estrutura:
         # Limpar a lista de produtos
         self.interface.tabela_produtos_cadastrados.delete(*self.interface.tabela_produtos_cadastrados.get_children())
 
+        #limpa tabela vendas
+        #self.interface.tabela_vendas.delete(*self.interface.tabela_vendas.get_children())
+
         # Limpar o combobox de edição
         self.interface.combobox_produtos['values'] = []
         self.interface.combobox_produtos_venda['values'] = []
@@ -148,6 +152,9 @@ class Estrutura:
         # Limpar o texto dos campos de data e hora de cadastro
         self.interface.label_cadastro_info_data.config(text="")
         self.interface.label_cadastro_info_hora.config(text="")
+        
+        #self.vendas.limpar_itens_venda()
+        
 
         # Atualizar status do período na interface
         self.showload_status_periodo()

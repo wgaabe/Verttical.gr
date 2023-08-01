@@ -21,12 +21,10 @@ class Interface:
         self.produto = Produto(self, self.controller)
         self.estrutura = Estrutura(self, self.controller)
         self.vendas = Vendas(self, self.controller)
-       
 
     def fechar_programa(self):
         if messagebox.askokcancel("Fechar Programa", "Deseja realmente sair?"):
             self.janela.destroy()
-
         
     def executar(self):
         # Configuração da janela principal
@@ -266,14 +264,11 @@ class Interface:
         # Limpar a tabela antes de exibir os produtos cadastrados
         for item in self.tabela_produtos_cadastrados.get_children():
             self.tabela_produtos_cadastrados.delete(item)
-
         # Obter o período aberto (você pode alterar isso dependendo de como está controlando o período aberto)
         periodo_aberto = self.controller.obter_periodo_aberto()
-
         if periodo_aberto:
             periodo_id = periodo_aberto[0]  # Extrair o primeiro valor do período aberto (que é o ID do período)
             produtos_cadastrados = self.controller.obter_produtos_periodo(periodo_id)
-
             if produtos_cadastrados:
                 # Exibir os produtos na tabela
                 for produto in produtos_cadastrados:
@@ -286,7 +281,13 @@ class Interface:
             # Caso não haja período aberto, adicione uma mensagem na tabela
             self.tabela_produtos_cadastrados.insert("", tk.END, values=("Nenhum período aberto", "", ""))
 
+    def adicionar_produto_venda_interface(self):
+        produto_selecionado = self.combobox_produtos_venda.get()
+        quantidade_selecionada = self.entry_quantidade_venda.get()
+        venda_cortesia = self.venda_cortesia_var.get()
 
+        self.vendas.adicionar_produto_venda(produto_selecionado, quantidade_selecionada, venda_cortesia)
+            
     def adicionar_produto_venda_interface(self):
         produto_selecionado = self.combobox_produtos_venda.get()
         quantidade_selecionada = self.entry_quantidade_venda.get()
