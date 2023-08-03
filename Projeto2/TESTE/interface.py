@@ -126,7 +126,7 @@ class Interface:
         label_selecao.grid(row=3, column=0, padx=10, pady=5, sticky=tk.E)
 
         # Combobox de seleção de produto
-        self.combobox_produtos = ttk.Combobox(frame_edicao)
+        self.combobox_produtos = ttk.Combobox(frame_edicao, state='readonly')
         self.combobox_produtos.grid(row=3, column=1, padx=10, pady=5)
         self.combobox_produtos.bind("<<ComboboxSelected>>", self.produto.carregar_dados_produto)
 
@@ -173,7 +173,7 @@ class Interface:
         label_produtos_venda = tk.Label(frame_vendas, text="Selecionar Produto:")
         label_produtos_venda.grid(row=1, column=0, padx=10, pady=5, sticky=tk.W)
 
-        self.combobox_produtos_venda = ttk.Combobox(frame_vendas)
+        self.combobox_produtos_venda = ttk.Combobox(frame_vendas, state='readonly')
         self.combobox_produtos_venda.grid(row=1, column=1, padx=10, pady=5)
         self.combobox_produtos_venda.bind("<<ComboboxSelected>>", self.vendas.atualizar_quantidade_disponivel)
 
