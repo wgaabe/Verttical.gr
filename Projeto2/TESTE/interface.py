@@ -30,7 +30,7 @@ class Interface:
         # Configuração da janela principal
         self.janela = tk.Tk()
         self.janela.title("Gerenciador de Produtos")
-        self.janela.geometry("660x800")
+        self.janela.geometry("660x700")
 
         self.venda_cortesia = tk.BooleanVar()  # Variável para venda cortesia (checkbox)
         self.venda_cortesia.set(False)  # Valor inicial da venda cortesia (não marcada)
@@ -40,7 +40,7 @@ class Interface:
         panedwindow.pack(fill=tk.BOTH, expand=True)
 
         # Frame da esquerda (300x800)
-        frame_esquerda = tk.Frame(panedwindow, width=330, height=800)
+        frame_esquerda = tk.Frame(panedwindow, width=330, height=700)
         panedwindow.add(frame_esquerda)
 
         # Frame do período
@@ -102,7 +102,7 @@ class Interface:
         #self.lista_produtos.grid(row=1, column=0, columnspan=2, padx=10, pady=5)
 
          # Frame da direita (300x800)
-        frame_direita = tk.Frame(panedwindow, width=330, height=800)
+        frame_direita = tk.Frame(panedwindow, width=330, height=700)
         panedwindow.add(frame_direita)
 
          # Frame de edição de produtos
@@ -230,6 +230,7 @@ class Interface:
 
     def criar_tabela_vendas(self):
         self.tabela_vendas = ttk.Treeview(self.lista_produtos_venda_tabela, columns=("Produto", "Quantidade", "Cortesia", "Valor Unitário", "Valor Total"))
+        self.tabela_vendas["height"] = 5
         self.tabela_vendas.heading("#0", text="ID")  # Coluna oculta para armazenar o índice do produto na lista
         self.tabela_vendas.heading("Produto", text="Produto")
         self.tabela_vendas.heading("Quantidade", text="Quantidade")
@@ -248,6 +249,7 @@ class Interface:
 
     def criar_tabela_produtos_cadastrados(self):
         self.tabela_produtos_cadastrados = ttk.Treeview(self.lista_produtos_cadastrados, columns=("Nome", "Valor", "Quantidade"))
+        self.tabela_produtos_cadastrados["height"] = 5
         self.tabela_produtos_cadastrados.heading("#0", text="ID")  # Coluna oculta para armazenar o índice do produto na lista
         self.tabela_produtos_cadastrados.heading("Nome", text="Nome")
         self.tabela_produtos_cadastrados.heading("Valor", text="Valor")
