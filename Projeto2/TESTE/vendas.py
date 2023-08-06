@@ -3,6 +3,7 @@ from tkinter import messagebox
 from database import Database
 import tkinter as tk
 from tkinter import ttk
+from PIL import Image, ImageTk
 
 class Vendas:
     def __init__(self, interface, controller):
@@ -16,6 +17,7 @@ class Vendas:
         self.lista_produtos_venda = []  # Lista para armazenar os produtos da venda
         self.tabela_vendas_selecionada = None  # Variável para armazenar a venda selecionada na tabela
         self.interface = interface
+        self.janela_qrcode = None  # Variável para armazenar a janela do QR Code do PIX
 
     def limpar_vendas_selecionadas(self):
         self.produtos_selecionados = []
@@ -132,7 +134,6 @@ class Vendas:
         # Atualiza o valor total da venda após exibir os itens
         self.atualizar_total_venda()
 
-
     def adicionar_produto_venda(self, produto_selecionado, quantidade_selecionada, venda_cortesia):
         # Verifica se a quantidade é um número válido
         if self.is_numero(quantidade_selecionada):
@@ -216,7 +217,6 @@ class Vendas:
                 messagebox.showwarning("Quantidade Inválida", "A quantidade deve ser maior que zero.")
         else:
             messagebox.showwarning("Quantidade Inválida", "Digite uma quantidade válida (número).")
-
 
     # Resto do código da classe Vendas
 
@@ -302,6 +302,181 @@ class Vendas:
         self.interface.entry_quantidade_venda.delete(0, tk.END)
         # Limpar a label de quantidade disponível
         self.interface.label_quantidade_venda.config(text="")
+
+    def registrar_venda(self):
+        # Verificar se existem produtos selecionados para a venda
+        if not self.produtos_selecionados and not self.produtos_cortesia_selecionados:
+            messagebox.showwarning("Venda Inválida", "Não há produtos selecionados para a venda.")
+            return
+
+        # Criar a janela de seleção de método de pagamento
+        self.exibir_selecao_metodo_pagamento()
+
+    def exibir_selecao_metodo_pagamento(self):
+        janela_metodo_pagamento = tk.Toplevel()
+        janela_metodo_pagamento.title("Seleção de Método de Pagamento")
+
+        # Calcula o tamanho da tela e posiciona no centro
+        largura_tela = janela_metodo_pagamento.winfo_screenwidth()
+        altura_tela = janela_metodo_pagamento.winfo_screenheight()
+        largura_janela = 300  # Largura da janela
+        altura_janela = 200   # Altura da janela
+        pos_x = (largura_tela - largura_janela) // 2
+        pos_y = (altura_tela - altura_janela) // 2
+        janela_metodo_pagamento.geometry(f"{largura_janela}x{altura_janela}+{pos_x}+{pos_y}")
+
+        # Funções de callback para os botões de método de pagamento
+        def selecionar_dinheiro():
+            self.metodo_pagamento = "Dinheiro"
+            janela_metodo_pagamento.destroy()
+            self.exibir_resumo_venda()
+
+        def selecionar_pix():
+            self.metodo_pagamento = "PIX"
+            janela_metodo_pagamento.destroy()
+            self.exibir_resumo_venda()
+
+        def selecionar_debito():
+            self.metodo_pagamento = "Débito"
+            janela_metodo_pagamento.destroy()
+            self.exibir_resumo_venda()
+
+        def selecionar_credito():
+            self.metodo_pagamento = "Crédito"
+            janela_metodo_pagamento.destroy()
+            self.exibir_resumo_venda()
+
+        # Botões para seleção de método de pagamento
+        btn_dinheiro = tk.Button(janela_metodo_pagamento, text="Dinheiro", command=selecionar_dinheiro, width=15)
+        btn_dinheiro.pack(pady=10)
+
+        btn_pix = tk.Button(janela_metodo_pagamento, text="PIX", command=selecionar_pix, width=15)
+        btn_pix.pack(pady=10)
+
+        btn_debito = tk.Button(janela_metodo_pagamento, text="Débito", command=selecionar_debito, width=15)
+        btn_debito.pack(pady=10)
+
+        btn_credito = tk.Button(janela_metodo_pagamento, text="Crédito", command=selecionar_credito, width=15)
+        btn_credito.pack(pady=10)
+
+    def exibir_resumo_venda(self):
+        
+        def selecionar_alterar_pagamento():
+            janela_resumo.destroy()  # Fecha a janela de resumo da venda
+            if self.metodo_pagamento == "PIX" and self.janela_qrcode:
+                self.janela_qrcode.destroy()  # Fecha a janela do QR Code do PIX
+                self.janela_qrcode = None  # Define a janela do QR Code como None novamente
+            self.exibir_selecao_metodo_pagamento()  # Abre uma nova janela de seleção de método de pagamento               
+        
+        def voltar_tela_vendas():
+            janela_resumo.destroy()  # Fecha a janela de resumo da venda
+            if self.metodo_pagamento == "PIX":
+                self.fechar_janela_qrcode()  # Fecha a janela do QR Code do PIX
+            #self.exibir_selecao_metodo_pagamento()  # Abre uma nova janela de seleção de método de pagamento
+
+        janela_resumo = tk.Toplevel()
+        janela_resumo.title("Resumo da Venda")
+
+        # Calcula o tamanho da tela e posiciona no centro
+        largura_tela = janela_resumo.winfo_screenwidth()
+        altura_tela = janela_resumo.winfo_screenheight()
+        largura_janela = 500  # Largura da janela
+        altura_janela = 400   # Altura da janela
+        pos_x = (largura_tela - largura_janela) // 2
+        pos_y = (altura_tela - altura_janela) // 2
+        janela_resumo.geometry(f"{largura_janela}x{altura_janela}+{pos_x}+{pos_y}")
+
+        # Criar uma Treeview para exibir os produtos
+        treeview_produtos = ttk.Treeview(janela_resumo, columns=("Produto", "Quantidade", "Valor Unitário"), show="headings")
+        treeview_produtos.heading("Produto", text="Produto", anchor=tk.CENTER)  # Centraliza o cabeçalho
+        treeview_produtos.heading("Quantidade", text="Quantidade", anchor=tk.CENTER)  # Centraliza o cabeçalho
+        treeview_produtos.heading("Valor Unitário", text="Valor Unitário", anchor=tk.CENTER)  # Centraliza o cabeçalho
+        
+        # Define a altura da treeview com base no número fixo de linhas
+        altura_treeview = 8
+        treeview_produtos.configure(height=altura_treeview)
+
+        # Define a largura das colunas (ajuste conforme necessário)
+        largura_colunas = [100, 100, 150]
+        for coluna, largura in zip(("Produto", "Quantidade", "Valor Unitário"), largura_colunas):
+            treeview_produtos.column(coluna, width=largura, anchor=tk.CENTER)
+
+        treeview_produtos.pack(padx=20, pady=10)  # Ajusta o padding
+
+        # Preencher a Treeview com os produtos
+        for produto in self.produtos_selecionados:
+            treeview_produtos.insert("", "end", values=(produto["nome"], int(produto["quantidade"]), f"R$ {produto['valor_unitario']:.2f}"))
+
+        for produto_cortesia in self.produtos_cortesia_selecionados:
+            treeview_produtos.insert("", "end", values=(produto_cortesia["nome"], int(produto_cortesia["quantidade"]), "Cortesia"))
+
+        # Configurar tamanho padrão para os botões
+        btn_width = 30
+
+        # Calcular o valor total da venda
+        valor_total_venda = sum(produto["valor_total_produto"] for produto in self.produtos_selecionados)
+
+        # Botão "Alterar Forma de Pagamento"
+        btn_alterar_pagamento = tk.Button(janela_resumo, text="Alterar Forma de Pagamento",width=btn_width, command=selecionar_alterar_pagamento)
+        btn_alterar_pagamento.pack(padx=20, pady=(10, 0))  # Define o padding somente no topo
+
+        # Botão "Voltar à Tela de Vendas"
+        btn_voltar_vendas = tk.Button(janela_resumo, text="Voltar à Tela de Vendas",width=btn_width, command=voltar_tela_vendas)
+        btn_voltar_vendas.pack(padx=20, pady=5)
+
+        # Label com o método de pagamento
+        label_metodo_pagamento = tk.Label(janela_resumo, text=f"Método de Pagamento: {self.metodo_pagamento}")
+        label_metodo_pagamento.pack(padx=20, pady=5)
+      
+        # Label com o total da venda (com fonte maior)
+        label_total = tk.Label(janela_resumo, text=f"Total: R$ {valor_total_venda:.2f}", font=("Helvetica", 14, "bold"))
+        label_total.pack(padx=20, pady=(0, 10))  # Define o padding somente na parte inferior
+
+        # Botão para finalizar a venda
+        btn_finalizar_venda = tk.Button(janela_resumo, text="Finalizar Venda", width=btn_width, command=self.finalizar_venda)
+        btn_finalizar_venda.pack(pady=5)
+
+        if self.metodo_pagamento == "PIX":
+            self.exibir_qrcode_pix()
+
+    def exibir_qrcode_pix(self):
+        if self.metodo_pagamento == "PIX":
+            
+            # Criação da janela do QR Code aqui
+            self.janela_qrcode = tk.Toplevel()
+            self.janela_qrcode.title("QR Code PIX")
+
+            qrcode_image = Image.open("img/pix_qrcode.png")  # Caminho correto para a imagem
+            qrcode_photo = ImageTk.PhotoImage(qrcode_image)
+
+            # Calcula a posição para centralizar a janela à direita da tela
+            largura_tela = self.janela_qrcode.winfo_screenwidth()
+            altura_tela = self.janela_qrcode.winfo_screenheight()
+            largura_janela = 350
+            altura_janela = 350
+            padding = 100  # Espaço de padding
+            pos_x = largura_tela - largura_janela - padding
+            pos_y = (altura_tela - altura_janela) // 2
+            self.janela_qrcode.geometry(f"{largura_janela}x{altura_janela}+{pos_x}+{pos_y}")
+
+            label_qrcode = tk.Label(self.janela_qrcode, image=qrcode_photo)
+            label_qrcode.pack(padx=20, pady=10)
+
+            # Manter a janela aberta até que o usuário a feche
+            self.janela_qrcode.mainloop()
+
+    def fechar_janela_qrcode(self):
+        if self.janela_qrcode:
+            self.janela_qrcode.destroy()
+            self.janela_qrcode = None           
+
+    def finalizar_venda(self):
+        # Aqui você pode usar o valor de self.metodo_pagamento para concluir o registro da venda
+        # Atualizar a interface conforme necessário e limpar as variáveis de venda, se for o caso
+        # Por exemplo, limpar self.produtos_selecionados e self.produtos_cortesia_selecionados
+        self.interface.vendas.limpar_campos_vendas_finalizar_periodo()
+        self.interface.vendas.limpar_vendas_selecionadas()
+        # Restante do código para finalizar a venda
 
     def is_numero(self, valor):
         try:

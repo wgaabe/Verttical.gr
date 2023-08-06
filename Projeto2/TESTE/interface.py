@@ -30,7 +30,16 @@ class Interface:
         # Configuração da janela principal
         self.janela = tk.Tk()
         self.janela.title("Gerenciador de Produtos")
-        self.janela.geometry("660x700")
+        #self.janela.geometry("660x700")
+
+        # Calcula o tamanho da tela e posiciona no centro
+        largura_tela = self.janela.winfo_screenwidth()
+        altura_tela = self.janela.winfo_screenheight()
+        largura_janela = 660  # Largura da janela
+        altura_janela = 700   # Altura da janela
+        pos_x = (largura_tela - largura_janela) // 2
+        pos_y = (altura_tela - altura_janela) // 2
+        self.janela.geometry(f"{largura_janela}x{altura_janela}+{pos_x}+{pos_y}")
 
         self.venda_cortesia = tk.BooleanVar()  # Variável para venda cortesia (checkbox)
         self.venda_cortesia.set(False)  # Valor inicial da venda cortesia (não marcada)
@@ -210,7 +219,7 @@ class Interface:
         self.label_total_venda.grid(row=7, column=0, columnspan=2, padx=10, pady=5)
 
         # Botão Registrar Venda
-        self.botao_registrar_venda = tk.Button(frame_vendas, text="Registrar Venda", width=15, command=None)
+        self.botao_registrar_venda = tk.Button(frame_vendas, text="Registrar Venda", width=15, command=self.vendas.registrar_venda)
         self.botao_registrar_venda.grid(row=8, column=0, columnspan=2, padx=10, pady=10)
 
         self.criar_tabela_vendas()
