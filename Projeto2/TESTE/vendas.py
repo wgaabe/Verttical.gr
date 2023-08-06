@@ -110,15 +110,17 @@ class Vendas:
         # Exibir os produtos da venda na tabela
         for produto in self.produtos_selecionados:
             cortesia = "Sim" if produto["cortesia"] else "Não"
+            quantidade_formatada = int(produto["quantidade"])  # Converte para int para remover os decimais
             if produto["cortesia"]:
-                self.interface.tabela_vendas.insert("", tk.END, values=(produto["nome"], produto["quantidade"], cortesia, produto["valor_unitario"], produto["valor_total_produto"]), tags=("cortesia",))
+                self.interface.tabela_vendas.insert("", tk.END, values=(produto["nome"], quantidade_formatada, cortesia, produto["valor_unitario"], produto["valor_total_produto"]), tags=("cortesia",))
             else:
-                self.interface.tabela_vendas.insert("", tk.END, values=(produto["nome"], produto["quantidade"], cortesia, produto["valor_unitario"], produto["valor_total_produto"]))
+                self.interface.tabela_vendas.insert("", tk.END, values=(produto["nome"], quantidade_formatada, cortesia, produto["valor_unitario"], produto["valor_total_produto"]))
 
         # Exibir os produtos de cortesia na tabela
         for produto_cortesia in self.produtos_cortesia_selecionados:
             cortesia_cortesia = "Sim"
-            self.interface.tabela_vendas.insert("", tk.END, values=(produto_cortesia["nome"], produto_cortesia["quantidade"], cortesia_cortesia, produto_cortesia["valor_unitario"], produto_cortesia["valor_total_produto"]), tags=("cortesia",))
+            quantidade_formatada_cortesia = int(produto_cortesia["quantidade"])  # Converte para int para remover os decimais
+            self.interface.tabela_vendas.insert("", tk.END, values=(produto_cortesia["nome"], quantidade_formatada_cortesia, cortesia_cortesia, produto_cortesia["valor_unitario"], produto_cortesia["valor_total_produto"]), tags=("cortesia",))
 
         # Aplicar o estilo "Cortesia.TLabel" nas linhas que possuem cortesia
         self.interface.tabela_vendas.tag_configure("cortesia", foreground="red")
@@ -151,13 +153,22 @@ class Vendas:
                                 quantidade_cortesia += produto_cortesia["quantidade"]
 
                         quantidade_total = quantidade_na_lista + quantidade_cortesia + quantidade_selecionada
+                        quantidade_total_venda = quantidade_na_lista + quantidade_cortesia + quantidade_selecionada
 
                         if quantidade_total > estoque_disponivel:
-                            mensagem = (f"A quantidade total informada ({quantidade_total}) excede o estoque disponível "
-                                        f"para o produto selecionado ({estoque_disponivel}).\n\n"
-                                        f"Quantidade em estoque: {estoque_disponivel}\n"
-                                        f"Quantidade já vendida: {quantidade_na_lista}\n"
-                                        f"Quantidade de cortesia vendida: {quantidade_cortesia}")
+                            quantidade_excedente = quantidade_total - estoque_disponivel
+                            quantidade_disponivel_para_venda = estoque_disponivel - quantidade_na_lista - quantidade_cortesia
+
+                            mensagem = (
+                                f"Quantidade informada pelo usuário: {int(quantidade_selecionada)}\n\n"
+                                f"A quantidade total({int(quantidade_total)}) excede o estoque disponível "
+                                f"para o produto selecionado ({estoque_disponivel})\n\n"
+                                f"Quantidade disponível para venda: {int(quantidade_disponivel_para_venda)}\n\n"
+                                f"Quantidade excedente: {int(quantidade_excedente)}\n\n"
+                                f"Quantidade em estoque: {int(estoque_disponivel)}\n"
+                                f"Quantidade já vendida: {int(quantidade_na_lista)}\n"
+                                f"Quantidade de cortesia vendida: {int(quantidade_cortesia)}"
+                            )
                             messagebox.showwarning("Quantidade Inválida", mensagem)
                             return
 
@@ -196,6 +207,7 @@ class Vendas:
                 messagebox.showwarning("Quantidade Inválida", "A quantidade deve ser maior que zero.")
         else:
             messagebox.showwarning("Quantidade Inválida", "Digite uma quantidade válida (número).")
+
 
 
 
