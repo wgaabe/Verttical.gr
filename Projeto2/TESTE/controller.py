@@ -13,6 +13,10 @@ class Controller:
     def set_interface(self, interface):
         self.interface = interface
 
+
+    def limpar_campos_vendas_finalizar_periodo(self):
+        self.interface.vendas.limpar_campos_vendas_finalizar_periodo()
+
     def showload_status_periodo(self):
         periodo_aberto = self.database.obter_periodo_aberto()
         if periodo_aberto:

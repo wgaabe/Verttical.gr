@@ -17,6 +17,10 @@ class Vendas:
         self.tabela_vendas_selecionada = None  # Variável para armazenar a venda selecionada na tabela
         self.interface = interface
 
+    def limpar_vendas_selecionadas(self):
+        self.produtos_selecionados = []
+        self.produtos_cortesia_selecionados = []
+
     def registrar_venda(self, produto, quantidade, valor_total, venda_cortesia):
         # Lógica de negócios para registrar a venda
         # Obter o ID do período aberto
@@ -160,14 +164,19 @@ class Vendas:
                             quantidade_disponivel_para_venda = estoque_disponivel - quantidade_na_lista - quantidade_cortesia
 
                             mensagem = (
+                                f"Produto selecionado: {produto_selecionado}\n"
                                 f"Quantidade informada pelo usuário: {int(quantidade_selecionada)}\n\n"
                                 f"A quantidade total({int(quantidade_total)}) excede o estoque disponível "
                                 f"para o produto selecionado ({estoque_disponivel})\n\n"
-                                f"Quantidade disponível para venda: {int(quantidade_disponivel_para_venda)}\n\n"
                                 f"Quantidade excedente: {int(quantidade_excedente)}\n\n"
-                                f"Quantidade em estoque: {int(estoque_disponivel)}\n"
+                                f"Quantidade em estoque: {int(estoque_disponivel)}\n\n"
+                                f"------------------Em Venda-----------------\n"
                                 f"Quantidade já vendida: {int(quantidade_na_lista)}\n"
-                                f"Quantidade de cortesia vendida: {int(quantidade_cortesia)}"
+                                f"Quantidade de cortesia vendida: {int(quantidade_cortesia)}\n"
+                                f"-----------------------------------------------\n\n"
+                                f"++++++++++++++++++++++++++\n"
+                                f"Quantidade disponível para venda: {int(quantidade_disponivel_para_venda)}\n"
+                                f"++++++++++++++++++++++++++\n\n"
                             )
                             messagebox.showwarning("Quantidade Inválida", mensagem)
                             return
@@ -207,10 +216,6 @@ class Vendas:
                 messagebox.showwarning("Quantidade Inválida", "A quantidade deve ser maior que zero.")
         else:
             messagebox.showwarning("Quantidade Inválida", "Digite uma quantidade válida (número).")
-
-
-
-
 
 
     # Resto do código da classe Vendas
@@ -282,10 +287,11 @@ class Vendas:
         self.limpar_tabela_vendas()    
 
     def limpar_campos_vendas_finalizar_periodo(self):
-        # Limpar a lista de produtos selecionados
+        # Limpar as listas de produtos selecionados e produtos de cortesia selecionados
         self.produtos_selecionados = []
-        # Limpar a exibição dos itens na lista de vendas na interface
-        self.limpar_tabela_vendas()  # Atualize aqui o nome da função corretamente
+        self.produtos_cortesia_selecionados = []
+        # Limpar a exibição dos itens na tabela de vendas na interface
+        self.exibir_itens_venda()
         # Zerar o valor total da venda na interface
         self.interface.label_total_venda.config(text="Total da Venda: R$ 0.00")
         # Desmarcar a opção de venda cortesia na interface
@@ -296,7 +302,7 @@ class Vendas:
         self.interface.entry_quantidade_venda.delete(0, tk.END)
         # Limpar a label de quantidade disponível
         self.interface.label_quantidade_venda.config(text="")
-      
+
     def is_numero(self, valor):
         try:
             float(valor)
