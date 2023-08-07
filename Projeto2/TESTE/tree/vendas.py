@@ -109,30 +109,6 @@ class Vendas:
         style = ttk.Style()
         style.configure("Cortesia.TLabel", foreground="red")
 
-    def exibir_itens_venda(self):
-        # Limpar a tabela antes de exibir os itens
-        self.limpar_tabela_vendas()
-
-        # Exibir os produtos da venda na tabela
-        for produto in self.produtos_selecionados:
-            cortesia = "Sim" if produto["cortesia"] else "Não"
-            quantidade_formatada = int(produto["quantidade"])  # Converte para int para remover os decimais
-            if produto["cortesia"]:
-                self.interface.tabela_vendas.insert("", tk.END, values=(produto["nome"], quantidade_formatada, cortesia, produto["valor_unitario"], produto["valor_total_produto"]), tags=("cortesia",))
-            else:
-                self.interface.tabela_vendas.insert("", tk.END, values=(produto["nome"], quantidade_formatada, cortesia, produto["valor_unitario"], produto["valor_total_produto"]))
-
-        # Exibir os produtos de cortesia na tabela
-        for produto_cortesia in self.produtos_cortesia_selecionados:
-            cortesia_cortesia = "Sim"
-            quantidade_formatada_cortesia = int(produto_cortesia["quantidade"])  # Converte para int para remover os decimais
-            self.interface.tabela_vendas.insert("", tk.END, values=(produto_cortesia["nome"], quantidade_formatada_cortesia, cortesia_cortesia, produto_cortesia["valor_unitario"], produto_cortesia["valor_total_produto"]), tags=("cortesia",))
-
-        # Aplicar o estilo "Cortesia.TLabel" nas linhas que possuem cortesia
-        self.interface.tabela_vendas.tag_configure("cortesia", foreground="red")
-
-        # Atualiza o valor total da venda após exibir os itens
-        self.atualizar_total_venda()
 
     def adicionar_produto_venda(self, produto_selecionado, quantidade_selecionada, venda_cortesia):
         # Verifica se a quantidade é um número válido
@@ -154,11 +130,10 @@ class Vendas:
                                 quantidade_na_lista += produto["quantidade"]
 
                         for produto_cortesia in self.produtos_cortesia_selecionados:
-                            if produto_cortesia["ID"] == produto_id:
+                            if produto_cortesia["nome"] == produto_selecionado:
                                 quantidade_cortesia += produto_cortesia["quantidade"]
 
                         quantidade_total = quantidade_na_lista + quantidade_cortesia + quantidade_selecionada
-                        quantidade_total_venda = quantidade_na_lista + quantidade_cortesia + quantidade_selecionada
 
                         if quantidade_total > estoque_disponivel:
                             quantidade_excedente = quantidade_total - estoque_disponivel
@@ -187,24 +162,52 @@ class Vendas:
                             nome_produto, valor_produto, _, _, _ = dados_produto
                             valor_total_produto = valor_produto * quantidade_selecionada
 
-                            produto = {
-                                "ID": produto_id,
-                                "nome": produto_selecionado,
-                                "quantidade": quantidade_selecionada,
-                                "cortesia": venda_cortesia,
-                                "valor_unitario": valor_produto,
-                                "valor_total_produto": valor_total_produto
-                            }
-
                             if venda_cortesia:
-                                self.produtos_cortesia_selecionados.append(produto)
-                            else:
-                                self.produtos_selecionados.append(produto)
+                                produto_cortesia_existente = None
+                                for produto_cortesia in self.produtos_cortesia_selecionados:
+                                    if produto_cortesia["nome"] == produto_selecionado:
+                                        produto_cortesia_existente = produto_cortesia
+                                        break
 
+                                if produto_cortesia_existente:
+                                    produto_cortesia_existente["quantidade"] += quantidade_selecionada
+                                    produto_cortesia_existente["valor_total_produto"] = produto_cortesia_existente["valor_unitario"] * produto_cortesia_existente["quantidade"]
+                                else:
+                                    novo_produto_cortesia = {
+                                        "nome": produto_selecionado,
+                                        "quantidade": quantidade_selecionada,
+                                        "valor_unitario": valor_produto,
+                                        "valor_total_produto": valor_total_produto
+                                    }
+                                    self.produtos_cortesia_selecionados.append(novo_produto_cortesia)
+                            else:
+                                produto_existente = None
+                                for produto in self.produtos_selecionados:
+                                    if produto["ID"] == produto_id:
+                                        produto_existente = produto
+                                        break
+
+                                if produto_existente:
+                                    produto_existente["quantidade"] += quantidade_selecionada
+                                    produto_existente["valor_total_produto"] = produto_existente["valor_unitario"] * produto_existente["quantidade"]
+                                else:
+                                    novo_produto = {
+                                        "ID": produto_id,
+                                        "nome": produto_selecionado,
+                                        "quantidade": quantidade_selecionada,
+                                        "cortesia": venda_cortesia,
+                                        "valor_unitario": valor_produto,
+                                        "valor_total_produto": valor_total_produto
+                                    }
+                                    self.produtos_selecionados.append(novo_produto)
+
+                            # Limpa os campos após adicionar o produto
                             self.interface.label_quantidade_venda.config(text="")
                             self.interface.combobox_produtos_venda.set("")
                             self.interface.venda_cortesia_var.set(False)
                             self.interface.entry_quantidade_venda.delete(0, tk.END)
+
+                            # Atualiza a exibição na tabela
                             self.exibir_itens_venda()
                             self.atualizar_total_venda()
                         else:
@@ -217,6 +220,31 @@ class Vendas:
                 messagebox.showwarning("Quantidade Inválida", "A quantidade deve ser maior que zero.")
         else:
             messagebox.showwarning("Quantidade Inválida", "Digite uma quantidade válida (número).")
+
+
+    def exibir_itens_venda(self):
+        # Limpar a tabela antes de exibir os itens
+        self.limpar_tabela_vendas()
+
+        # Exibir os produtos da venda na tabela
+        for produto in self.produtos_selecionados:
+            cortesia = "Sim" if produto["cortesia"] else "Não"
+            quantidade_formatada = int(produto["quantidade"])  # Converte para int para remover os decimais
+            item_id = self.interface.tabela_vendas.insert("", tk.END, values=(produto["nome"], quantidade_formatada, cortesia, produto["valor_unitario"], produto["valor_total_produto"]))
+            if produto["cortesia"]:
+                self.interface.tabela_vendas.item(item_id, tags=("cortesia",))
+        # Exibir os produtos de cortesia na tabela
+        for produto_cortesia in self.produtos_cortesia_selecionados:
+            cortesia_cortesia = "Sim"
+            quantidade_formatada_cortesia = int(produto_cortesia["quantidade"])  # Converte para int para remover os decimais
+            item_id = self.interface.tabela_vendas.insert("", tk.END, values=(produto_cortesia["nome"], quantidade_formatada_cortesia, cortesia_cortesia, produto_cortesia["valor_unitario"], produto_cortesia["valor_total_produto"]))
+            self.interface.tabela_vendas.item(item_id, tags=("cortesia",))
+
+        # Aplicar o estilo "Cortesia.TLabel" nas linhas que possuem cortesia
+        self.interface.tabela_vendas.tag_configure("cortesia", foreground="red")
+
+        # Atualiza o valor total da venda após exibir os itens
+        self.atualizar_total_venda()
 
     # Resto do código da classe Vendas
 
