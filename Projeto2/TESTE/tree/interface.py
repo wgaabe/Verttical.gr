@@ -215,21 +215,29 @@ class Interface:
         self.lista_produtos_venda_tabela = tk.Frame(frame_vendas, width=10, height=0)
         self.lista_produtos_venda_tabela.grid(row=5, column=0, padx=10, pady=5, columnspan=2)
 
+        # Crie o botão "+" para aumentar o valor
+        botao_mais = tk.Button(frame_vendas, text="+", command=self.vendas.adicionar_quantidade, font=fonte_padrao, width=5)
+        botao_mais.grid(row=6, column=0, padx=10, pady=10)
+
+        # Crie o botão "-" para diminuir o valor
+        botao_menos = tk.Button(frame_vendas, text="-", command=None, font=fonte_padrao,width=5)
+        botao_menos.grid(row=6, column=1, padx=10, pady=5)
+
         #botão limpar lista, limpa todos os produtos adicionados
-        self.botao_limpar_lista = tk.Button(frame_vendas, text="Limpar Lista", command=self.vendas.limpar_toda_lista_vendas, font=fonte_padrao)
-        self.botao_limpar_lista.grid(row=6, column=0, padx=10, pady=5, sticky=tk.E)
+        self.botao_limpar_lista = tk.Button(frame_vendas, text="Limpar Lista", command=self.vendas.limpar_toda_lista_vendas, font=fonte_padrao, width=15)
+        self.botao_limpar_lista.grid(row=7, column=0, padx=10, pady=5, sticky=tk.E)
 
         # Botão remover produtos da lista 
-        self.botao_excluir_venda = tk.Button(frame_vendas, text="Excluir", command=self.vendas.excluir_produto_venda, font=fonte_padrao)
-        self.botao_excluir_venda.grid(row=6, column=1, padx=10, pady=5)
+        self.botao_excluir_venda = tk.Button(frame_vendas, text="Excluir", command=self.vendas.excluir_produto_venda, font=fonte_padrao, width=15)
+        self.botao_excluir_venda.grid(row=7, column=1, padx=10, pady=20)
 
         # Crie um label para exibir o valor total da venda na interface
         self.label_total_venda = tk.Label(frame_vendas, text="Total da Venda: R$ 0.00", font=("Helvetica",16))
-        self.label_total_venda.grid(row=7, column=0, columnspan=2, padx=10, pady=5)
+        self.label_total_venda.grid(row=8, column=0, columnspan=2, padx=10, pady=5)
 
         # Botão Registrar Venda
         self.botao_registrar_venda = tk.Button(frame_vendas, text="Registrar Venda", width=15, command=self.vendas.registrar_venda, font=fonte_padrao)
-        self.botao_registrar_venda.grid(row=8, column=0, columnspan=2, padx=10, pady=10)
+        self.botao_registrar_venda.grid(row=9, column=0, columnspan=2, padx=10, pady=10)
 
         self.criar_tabela_vendas()
         self.criar_tabela_produtos_cadastrados()

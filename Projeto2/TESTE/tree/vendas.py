@@ -19,9 +19,6 @@ class Vendas:
         self.interface = interface
         self.janela_qrcode = None  # Variável para armazenar a janela do QR Code do PIX
 
-    #customização 
-        fonte_padrao = (16)
-
     def limpar_vendas_selecionadas(self):
         self.produtos_selecionados = []
         self.produtos_cortesia_selecionados = []
@@ -253,6 +250,44 @@ class Vendas:
         # Atualiza o valor total da venda após exibir os itens
         self.atualizar_total_venda()
 
+    def adicionar_quantidade(self):
+        selected_item = self.interface.tabela_vendas.selection()
+
+        if selected_item:
+            produto_id = self.interface.tabela_vendas.item(selected_item, "text")  # Obtém o ID do produto
+            quantidade_atual = int(self.interface.tabela_vendas.item(selected_item, "values")[1])
+
+            # Verifica se o produto está na lista de produtos selecionados
+            for produto in self.produtos_selecionados:
+                if produto["ID"] == produto_id:
+                    estoque_disponivel = self.database.obter_estoque_disponivel_do_produto(produto_id)
+
+                    if quantidade_atual < estoque_disponivel:
+                        nova_quantidade = quantidade_atual + 1
+                        self.interface.tabela_vendas.set(selected_item, column="Quantidade", value=nova_quantidade)
+                        produto["quantidade"] = nova_quantidade
+                    else:
+                        messagebox.showwarning("Estoque Insuficiente", "Não é possível adicionar mais produtos ao estoque.")
+                    return
+
+            # Verifica se o produto está na lista de produtos de cortesia selecionados
+            for produto_cortesia in self.produtos_cortesia_selecionados:
+                if produto_cortesia["ID"] == produto_id:
+                    estoque_disponivel = self.database.obter_estoque_disponivel_do_produto(produto_id)
+
+                    if quantidade_atual < estoque_disponivel:
+                        nova_quantidade = quantidade_atual + 1
+                        self.interface.tabela_vendas.set(selected_item, column="Quantidade", value=nova_quantidade)
+                        produto_cortesia["quantidade"] = nova_quantidade
+                    else:
+                        messagebox.showwarning("Estoque Insuficiente", "Não é possível adicionar mais produtos ao estoque.")
+                    return
+
+            messagebox.showwarning("Produto não Encontrado", "O produto selecionado não foi encontrado nas listas de produtos.")
+        else:
+            messagebox.showwarning("Produto não Selecionado", "Selecione um produto na tabela de vendas.")
+
+
     def carregar_produtos_combobox_venda(self):
         self.interface.combobox_produtos_venda['values'] = []
         #self.interface.lista_produtos_venda_tabela.delete(0, tk.END)  # Limpar a lista de produtos selecionados
@@ -297,6 +332,7 @@ class Vendas:
             periodo_id = periodo_aberto[0]
             return self.controller.obter_valor_produto(produto, periodo_id)
         return None
+    
     
     def limpar_toda_lista_vendas(self):
         if messagebox.askokcancel("Limpar Lista de Vendas", "Deseja realmente limpar a lista de vendas?"):
