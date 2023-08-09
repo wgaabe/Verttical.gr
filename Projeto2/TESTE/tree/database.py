@@ -168,6 +168,18 @@ class Database:
                 print(traceback.format_exc())
                 return None
 
+    def atualizar_estoque_produto(self, produto_id, nova_quantidade_estoque):
+        with self.lock:
+            try:
+                self.abrir_conexao()
+                with self.conexao:
+                    self.cursor.execute(
+                        "UPDATE Produtos SET Quantidade = ? WHERE ID = ?",
+                        (nova_quantidade_estoque, produto_id)
+                    )
+            except Exception as e:
+                print("Erro ao atualizar estoque do produto:")
+                print(traceback.format_exc())
 
     def verificar_produto_periodo(self, produto_id, data_entrada, hora_entrada):
         self.abrir_conexao()
@@ -228,7 +240,21 @@ class Database:
                 print("Erro ao obter dados completos do produto por período:")
                 print(traceback.format_exc())
                 return None
-
+    def obter_quantidade_estoque(self, produto_id):
+        with self.lock:
+            try:
+                self.abrir_conexao()
+                with self.conexao:
+                    self.cursor.execute("SELECT Quantidade FROM Produtos WHERE ID = ?", (produto_id,))
+                    quantidade_estoque = self.cursor.fetchone()
+                    if quantidade_estoque:
+                        return quantidade_estoque[0]
+                    else:
+                        return None
+            except Exception as e:
+                print("Erro ao obter quantidade de estoque:")
+                print(traceback.format_exc())
+                return None
 
     def obter_quantidade_produto(self, produto_id):
         self.abrir_conexao()

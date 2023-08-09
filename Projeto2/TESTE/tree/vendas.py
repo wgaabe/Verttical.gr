@@ -19,6 +19,9 @@ class Vendas:
         self.interface = interface
         self.janela_qrcode = None  # Variável para armazenar a janela do QR Code do PIX
 
+    #customização 
+        fonte_padrao = (16)
+
     def limpar_vendas_selecionadas(self):
         self.produtos_selecionados = []
         self.produtos_cortesia_selecionados = []
@@ -350,10 +353,12 @@ class Vendas:
         largura_tela = janela_metodo_pagamento.winfo_screenwidth()
         altura_tela = janela_metodo_pagamento.winfo_screenheight()
         largura_janela = 300  # Largura da janela
-        altura_janela = 200   # Altura da janela
+        altura_janela = 230   # Altura da janela
         pos_x = (largura_tela - largura_janela) // 2
         pos_y = (altura_tela - altura_janela) // 2
         janela_metodo_pagamento.geometry(f"{largura_janela}x{altura_janela}+{pos_x}+{pos_y}")
+        
+        fonte_padrao = (16)
 
         # Funções de callback para os botões de método de pagamento
         def selecionar_dinheiro():
@@ -377,16 +382,16 @@ class Vendas:
             self.exibir_resumo_venda()
 
         # Botões para seleção de método de pagamento
-        btn_dinheiro = tk.Button(janela_metodo_pagamento, text="Dinheiro", command=selecionar_dinheiro, width=15)
+        btn_dinheiro = tk.Button(janela_metodo_pagamento, text="Dinheiro", command=selecionar_dinheiro, width=15, font=fonte_padrao)
         btn_dinheiro.pack(pady=10)
 
-        btn_pix = tk.Button(janela_metodo_pagamento, text="PIX", command=selecionar_pix, width=15)
+        btn_pix = tk.Button(janela_metodo_pagamento, text="PIX", command=selecionar_pix, width=15, font=fonte_padrao)
         btn_pix.pack(pady=10)
 
-        btn_debito = tk.Button(janela_metodo_pagamento, text="Débito", command=selecionar_debito, width=15)
+        btn_debito = tk.Button(janela_metodo_pagamento, text="Débito", command=selecionar_debito, width=15, font=fonte_padrao)
         btn_debito.pack(pady=10)
 
-        btn_credito = tk.Button(janela_metodo_pagamento, text="Crédito", command=selecionar_credito, width=15)
+        btn_credito = tk.Button(janela_metodo_pagamento, text="Crédito", command=selecionar_credito, width=15, font=fonte_padrao)
         btn_credito.pack(pady=10)
 
     def exibir_resumo_venda(self):
@@ -411,10 +416,13 @@ class Vendas:
         largura_tela = self.janela_resumo.winfo_screenwidth()
         altura_tela = self.janela_resumo.winfo_screenheight()
         largura_janela = 500  # Largura da janela
-        altura_janela = 400   # Altura da janela
+        altura_janela = 450   # Altura da janela
         pos_x = (largura_tela - largura_janela) // 2
         pos_y = (altura_tela - altura_janela) // 2
         self.janela_resumo.geometry(f"{largura_janela}x{altura_janela}+{pos_x}+{pos_y}")
+        
+        #customização 
+        fonte_padrao = (16)
 
         # Criar uma Treeview para exibir os produtos
         treeview_produtos = ttk.Treeview(self.janela_resumo, columns=("Produto", "Quantidade", "Valor Unitário"), show="headings")
@@ -447,23 +455,23 @@ class Vendas:
         valor_total_venda = sum(produto["valor_total_produto"] for produto in self.produtos_selecionados)
 
         # Botão "Alterar Forma de Pagamento"
-        btn_alterar_pagamento = tk.Button(self.janela_resumo, text="Alterar Forma de Pagamento",width=btn_width, command=selecionar_alterar_pagamento)
+        btn_alterar_pagamento = tk.Button(self.janela_resumo, text="Alterar Forma de Pagamento",width=btn_width, command=selecionar_alterar_pagamento, font=fonte_padrao)
         btn_alterar_pagamento.pack(padx=20, pady=(10, 0))  # Define o padding somente no topo
 
         # Botão "Voltar à Tela de Vendas"
-        btn_voltar_vendas = tk.Button(self.janela_resumo, text="Voltar à Tela de Vendas",width=btn_width, command=voltar_tela_vendas)
+        btn_voltar_vendas = tk.Button(self.janela_resumo, text="Voltar à Tela de Vendas",width=btn_width, command=voltar_tela_vendas, font=fonte_padrao)
         btn_voltar_vendas.pack(padx=20, pady=5)
 
         # Label com o método de pagamento
-        label_metodo_pagamento = tk.Label(self.janela_resumo, text=f"Método de Pagamento: {self.metodo_pagamento}")
+        label_metodo_pagamento = tk.Label(self.janela_resumo, text=f"Método de Pagamento: {self.metodo_pagamento}", font=fonte_padrao)
         label_metodo_pagamento.pack(padx=20, pady=5)
       
         # Label com o total da venda (com fonte maior)
-        label_total = tk.Label(self.janela_resumo, text=f"Total: R$ {valor_total_venda:.2f}", font=("Helvetica", 14, "bold"))
+        label_total = tk.Label(self.janela_resumo, text=f"Total: R$ {valor_total_venda:.2f}", font=("Helvetica", 16, "bold"))
         label_total.pack(padx=20, pady=(0, 10))  # Define o padding somente na parte inferior
 
         # Botão para finalizar a venda
-        btn_finalizar_venda = tk.Button(self.janela_resumo, text="Finalizar Venda", width=btn_width, command=self.finalizar_venda)
+        btn_finalizar_venda = tk.Button(self.janela_resumo, text="Finalizar Venda", width=btn_width, command=self.finalizar_venda, font=fonte_padrao)
         btn_finalizar_venda.pack(pady=5)
 
         if self.metodo_pagamento == "PIX":
@@ -540,6 +548,9 @@ class Vendas:
             
             # Registra Itens Venda
             self.database.inserir_produto_itens_venda(venda_id, produto_id, quantidade, valor_unitario, valor_total_produto, venda_cortesia)
+            #atualiza estoque de produtos
+            self.atualizar_quantidade_estoque(produto_id, quantidade)
+            
            
         # Inserir os dados dos produtos de cortesia na tabela Produtos
         for produto_cortesia in self.produtos_cortesia_selecionados:
@@ -549,6 +560,10 @@ class Vendas:
             valor_total_produto = produto_cortesia["valor_total_produto"]
             venda_cortesia = "Sim"  # Produto é de cortesia
             self.database.inserir_produto_itens_venda(venda_id, produto_id, quantidade, valor_unitario, valor_total_produto, venda_cortesia)
+
+            #atualiza estoque de produtos
+            self.atualizar_quantidade_estoque(produto_id, quantidade)
+            
             print(produto_cortesia)
 
         # Exibir mensagem de sucesso e limpar os campos após a venda ser registrada
@@ -558,7 +573,24 @@ class Vendas:
         self.interface.vendas.limpar_campos_vendas_finalizar_periodo()
         self.interface.vendas.limpar_vendas_selecionadas()
         self.fechar_janela_resumo_venda()
+        self.interface.atualizar_tabela_produtos_cadastrados()
     
+    def atualizar_quantidade_estoque(self, produto_id, quantidade):
+        # Verifica se a quantidade é um número válido
+        if self.is_numero(quantidade):
+            quantidade = int(quantidade)
+            if quantidade != 0:
+                # Obtenha a quantidade atual do estoque
+                estoque_atual = self.database.obter_quantidade_estoque(produto_id)
+                # Calcule a nova quantidade de estoque
+                nova_quantidade_estoque = estoque_atual - quantidade
+                # Atualize a quantidade de estoque na base de dados
+                self.database.atualizar_estoque_produto(produto_id, nova_quantidade_estoque)
+                
+                return True  # Indica sucesso na atualização do estoque
+        
+        return False  # Indica falha na atualização do estoque
+
     def is_numero(self, valor):
         try:
             float(valor)
