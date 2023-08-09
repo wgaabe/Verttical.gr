@@ -137,11 +137,6 @@ class Database:
                 print("Erro ao obter produtos do período:")
                 print(traceback.format_exc())
                 return []  # Retorna uma lista vazia em caso de erro
-
-
-
-
-
             
     def obter_id_produto(self, nome_produto, periodo_id):
         with self.lock:
@@ -253,6 +248,39 @@ class Database:
             else:
                 return None
 
+    def inserir_venda(self,data_venda, hora_venda, total_venda, periodo_id, tipo_pagamento):
+        with self.lock:
+            try:
+                self.abrir_conexao()
+                with self.conexao:
+                    self.cursor.execute(
+                        "INSERT INTO vendas (data_venda, hora_venda, total_venda, periodo_id, tipo_pagamento_id) "
+                        "VALUES (?, ?, ?, ?, ?)",
+                        (data_venda, hora_venda, total_venda, periodo_id, tipo_pagamento)
+                    )
+                    venda_id = self.cursor.lastrowid
+                    return venda_id
+            except Exception as e:
+                print("Erro ao registrar venda:")
+                print(traceback.format_exc())
+                return None  # Ou algum valor que indique um erro, se necessário
+
+    def inserir_produto_itens_venda(self, venda_id, produto_id, quantidade, valor_unitario,valor_total_produto, venda_cortesia):
+         with self.lock:
+            try:
+                self.abrir_conexao()
+                with self.conexao:
+                    self.cursor.execute(
+                        "INSERT INTO itens_venda (venda_id, produto_id, quantidade_venda, valor_unitario, valor_total_produto, venda_cortesia) "
+                        "VALUES (?, ?, ?, ?, ?, ?)",
+                        (venda_id, produto_id, quantidade, valor_unitario, valor_total_produto, venda_cortesia)
+                    )
+                    venda_id = self.cursor.lastrowid
+                    return venda_id
+            except Exception as e:
+                print("Erro ao registrar venda:")
+                print(traceback.format_exc())
+                return None  # Ou algum valor que indique um erro, se necessário
 
     def obter_valor_produto(self, produto, periodo_id):
         self.abrir_conexao()

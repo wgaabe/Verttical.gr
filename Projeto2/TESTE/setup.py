@@ -18,7 +18,7 @@ if sys.platform == "win32":
 setup(
     name="Verttical GR",
     version="1.0",
-    description="Descrição do seu programa",
+    description="Gestão",
     options={"build_exe": build_exe_options},
     executables=[Executable("tree/interface.py", base=base)]
 )

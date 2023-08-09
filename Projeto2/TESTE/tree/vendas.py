@@ -23,24 +23,6 @@ class Vendas:
         self.produtos_selecionados = []
         self.produtos_cortesia_selecionados = []
 
-    def registrar_venda(self, produto, quantidade, valor_total, venda_cortesia):
-        # Lógica de negócios para registrar a venda
-        # Obter o ID do período aberto
-        periodo_aberto = self.controller.obter_id_periodo_aberto()
-        if not periodo_aberto:
-            # Não há período aberto para registrar a venda
-            return False
-        periodo_id = periodo_aberto[0]
-        # Obter o ID do produto
-        produto_id = self.controller.obter_id_produto_por_nome(produto, periodo_id)
-        if not produto_id:
-            # Produto não encontrado
-            return False
-        # Registrar a venda no banco de dados
-        data_hora_atual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self.controller.registrar_venda(data_hora_atual, produto, quantidade, valor_total, periodo_id, venda_cortesia, produto_id)
-        return True
-    
     def excluir_produto_venda(self):
         selecionado = self.interface.tabela_vendas.selection()
         if selecionado:
@@ -88,7 +70,6 @@ class Vendas:
         else:
             messagebox.showwarning("Nenhum Produto Selecionado", "Selecione um produto na lista para excluir.")
 
-
     def atualizar_total_venda(self):
         total_venda = 0
 
@@ -99,7 +80,6 @@ class Vendas:
         # Atualizar o valor total da venda na interface
         self.interface.label_total_venda.config(text=f"Total da Venda: R$ {total_venda:.2f}")
        
-
     def formatar_cortesia(self, value):
         if value:
             return "Sim"
@@ -108,7 +88,6 @@ class Vendas:
     def configurar_estilos(self):
         style = ttk.Style()
         style.configure("Cortesia.TLabel", foreground="red")
-
 
     def adicionar_produto_venda(self, produto_selecionado, quantidade_selecionada, venda_cortesia):
         # Verifica se a quantidade é um número válido
@@ -221,7 +200,6 @@ class Vendas:
         else:
             messagebox.showwarning("Quantidade Inválida", "Digite uma quantidade válida (número).")
 
-
     def exibir_itens_venda(self):
         # Limpar a tabela antes de exibir os itens
         self.limpar_tabela_vendas()
@@ -246,7 +224,30 @@ class Vendas:
         # Atualiza o valor total da venda após exibir os itens
         self.atualizar_total_venda()
 
-    # Resto do código da classe Vendas
+    def atualizar_tabela_vendas(self):
+        # Limpar a tabela antes de exibir os itens
+        self.limpar_tabela_vendas()
+
+        # Exibir os produtos da venda na tabela
+        for produto in self.produtos_selecionados:
+            cortesia = "Sim" if produto["cortesia"] else "Não"
+            quantidade_formatada = int(produto["quantidade"])  # Converte para int para remover os decimais
+            item_id = self.interface.tabela_vendas.insert("", tk.END, values=(produto["nome"], quantidade_formatada, cortesia, produto["valor_unitario"], produto["valor_total_produto"]))
+            if produto["cortesia"]:
+                self.interface.tabela_vendas.item(item_id, tags=("cortesia",))
+
+        # Exibir os produtos de cortesia na tabela de vendas
+        for produto_cortesia in self.produtos_cortesia_selecionados:
+            cortesia_cortesia = "Sim"
+            quantidade_formatada_cortesia = int(produto_cortesia["quantidade"])  # Converte para int para remover os decimais
+            item_id = self.interface.tabela_vendas.insert("", tk.END, values=(produto_cortesia["nome"], quantidade_formatada_cortesia, cortesia_cortesia, produto_cortesia["valor_unitario"], produto_cortesia["valor_total_produto"]))
+            self.interface.tabela_vendas.item(item_id, tags=("cortesia",))
+
+        # Aplicar o estilo "Cortesia.TLabel" nas linhas que possuem cortesia
+        self.interface.tabela_vendas.tag_configure("cortesia", foreground="red")
+
+        # Atualiza o valor total da venda após exibir os itens
+        self.atualizar_total_venda()
 
     def carregar_produtos_combobox_venda(self):
         self.interface.combobox_produtos_venda['values'] = []
@@ -390,32 +391,32 @@ class Vendas:
     def exibir_resumo_venda(self):
         
         def selecionar_alterar_pagamento():
-            janela_resumo.destroy()  # Fecha a janela de resumo da venda
+            self.janela_resumo.destroy()  # Fecha a janela de resumo da venda
             if self.metodo_pagamento == "PIX" and self.janela_qrcode:
                 self.janela_qrcode.destroy()  # Fecha a janela do QR Code do PIX
                 self.janela_qrcode = None  # Define a janela do QR Code como None novamente
             self.exibir_selecao_metodo_pagamento()  # Abre uma nova janela de seleção de método de pagamento               
         
         def voltar_tela_vendas():
-            janela_resumo.destroy()  # Fecha a janela de resumo da venda
+            self.janela_resumo.destroy()  # Fecha a janela de resumo da venda
             if self.metodo_pagamento == "PIX":
                 self.fechar_janela_qrcode()  # Fecha a janela do QR Code do PIX
             #self.exibir_selecao_metodo_pagamento()  # Abre uma nova janela de seleção de método de pagamento
-
-        janela_resumo = tk.Toplevel()
-        janela_resumo.title("Resumo da Venda")
+       
+        self.janela_resumo = tk.Toplevel()
+        self.janela_resumo.title("Resumo da Venda")
 
         # Calcula o tamanho da tela e posiciona no centro
-        largura_tela = janela_resumo.winfo_screenwidth()
-        altura_tela = janela_resumo.winfo_screenheight()
+        largura_tela = self.janela_resumo.winfo_screenwidth()
+        altura_tela = self.janela_resumo.winfo_screenheight()
         largura_janela = 500  # Largura da janela
         altura_janela = 400   # Altura da janela
         pos_x = (largura_tela - largura_janela) // 2
         pos_y = (altura_tela - altura_janela) // 2
-        janela_resumo.geometry(f"{largura_janela}x{altura_janela}+{pos_x}+{pos_y}")
+        self.janela_resumo.geometry(f"{largura_janela}x{altura_janela}+{pos_x}+{pos_y}")
 
         # Criar uma Treeview para exibir os produtos
-        treeview_produtos = ttk.Treeview(janela_resumo, columns=("Produto", "Quantidade", "Valor Unitário"), show="headings")
+        treeview_produtos = ttk.Treeview(self.janela_resumo, columns=("Produto", "Quantidade", "Valor Unitário"), show="headings")
         treeview_produtos.heading("Produto", text="Produto", anchor=tk.CENTER)  # Centraliza o cabeçalho
         treeview_produtos.heading("Quantidade", text="Quantidade", anchor=tk.CENTER)  # Centraliza o cabeçalho
         treeview_produtos.heading("Valor Unitário", text="Valor Unitário", anchor=tk.CENTER)  # Centraliza o cabeçalho
@@ -445,23 +446,23 @@ class Vendas:
         valor_total_venda = sum(produto["valor_total_produto"] for produto in self.produtos_selecionados)
 
         # Botão "Alterar Forma de Pagamento"
-        btn_alterar_pagamento = tk.Button(janela_resumo, text="Alterar Forma de Pagamento",width=btn_width, command=selecionar_alterar_pagamento)
+        btn_alterar_pagamento = tk.Button(self.janela_resumo, text="Alterar Forma de Pagamento",width=btn_width, command=selecionar_alterar_pagamento)
         btn_alterar_pagamento.pack(padx=20, pady=(10, 0))  # Define o padding somente no topo
 
         # Botão "Voltar à Tela de Vendas"
-        btn_voltar_vendas = tk.Button(janela_resumo, text="Voltar à Tela de Vendas",width=btn_width, command=voltar_tela_vendas)
+        btn_voltar_vendas = tk.Button(self.janela_resumo, text="Voltar à Tela de Vendas",width=btn_width, command=voltar_tela_vendas)
         btn_voltar_vendas.pack(padx=20, pady=5)
 
         # Label com o método de pagamento
-        label_metodo_pagamento = tk.Label(janela_resumo, text=f"Método de Pagamento: {self.metodo_pagamento}")
+        label_metodo_pagamento = tk.Label(self.janela_resumo, text=f"Método de Pagamento: {self.metodo_pagamento}")
         label_metodo_pagamento.pack(padx=20, pady=5)
       
         # Label com o total da venda (com fonte maior)
-        label_total = tk.Label(janela_resumo, text=f"Total: R$ {valor_total_venda:.2f}", font=("Helvetica", 14, "bold"))
+        label_total = tk.Label(self.janela_resumo, text=f"Total: R$ {valor_total_venda:.2f}", font=("Helvetica", 14, "bold"))
         label_total.pack(padx=20, pady=(0, 10))  # Define o padding somente na parte inferior
 
         # Botão para finalizar a venda
-        btn_finalizar_venda = tk.Button(janela_resumo, text="Finalizar Venda", width=btn_width, command=self.finalizar_venda)
+        btn_finalizar_venda = tk.Button(self.janela_resumo, text="Finalizar Venda", width=btn_width, command=self.finalizar_venda)
         btn_finalizar_venda.pack(pady=5)
 
         if self.metodo_pagamento == "PIX":
@@ -496,16 +497,67 @@ class Vendas:
     def fechar_janela_qrcode(self):
         if self.janela_qrcode:
             self.janela_qrcode.destroy()
-            self.janela_qrcode = None           
+            self.janela_qrcode = None
+
+    def fechar_janela_resumo_venda(self):
+        if self.janela_resumo:
+            self.janela_resumo.destroy()
+            self.janela_resumo = None                   
 
     def finalizar_venda(self):
-        # Aqui você pode usar o valor de self.metodo_pagamento para concluir o registro da venda
-        # Atualizar a interface conforme necessário e limpar as variáveis de venda, se for o caso
-        # Por exemplo, limpar self.produtos_selecionados e self.produtos_cortesia_selecionados
+        periodo_aberto = self.database.obter_periodo_aberto()
+        if not periodo_aberto:
+            messagebox.showwarning("Período não Iniciado", "Não há período em aberto. Inicie um período antes de cadastrar produtos.")
+
+        # Obter a data e hora atual
+        data_venda = datetime.now().strftime("%d-%m-%Y")
+        hora_venda = datetime.now().strftime("%H:%M:%S")
+        #total Venda
+        total_venda = sum(produto["valor_total_produto"] for produto in self.produtos_selecionados)
+        tipo_pagamento = self.metodo_pagamento
+        periodo_id = periodo_aberto[0]
+
+        print (data_venda)
+        print (hora_venda)
+        print (total_venda)
+        print (periodo_id)
+        print (tipo_pagamento)
+
+        # Inserir os dados da venda na tabela Vendas
+        venda_id = self.database.inserir_venda(data_venda, hora_venda, total_venda, periodo_id, tipo_pagamento)
+
+        print (venda_id)
+        print ("passou")
+       
+        # Inserir os dados dos produtos vendidos na tabela Produtos
+        for produto in self.produtos_selecionados:
+            produto_id = produto["ID"]
+            quantidade = produto["quantidade"]
+            valor_unitario = produto["valor_unitario"]
+            valor_total_produto = produto["valor_total_produto"]
+            venda_cortesia = "Não"  # Produto não é de cortesia
+            
+            # Registra Itens Venda
+            self.database.inserir_produto_itens_venda(venda_id, produto_id, quantidade, valor_unitario, valor_total_produto, venda_cortesia)
+           
+        # Inserir os dados dos produtos de cortesia na tabela Produtos
+        for produto_cortesia in self.produtos_cortesia_selecionados:
+            #produto_id = produto_cortesia["ID"]
+            quantidade = produto_cortesia["quantidade"]
+            valor_unitario = produto_cortesia["valor_unitario"]
+            valor_total_produto = produto_cortesia["valor_total_produto"]
+            venda_cortesia = "Sim"  # Produto é de cortesia
+            self.database.inserir_produto_itens_venda(venda_id, produto_id, quantidade, valor_unitario, valor_total_produto, venda_cortesia)
+            print(produto_cortesia)
+
+        # Exibir mensagem de sucesso e limpar os campos após a venda ser registrada
+        messagebox.showinfo("Venda Registrada", "A venda foi registrada com sucesso!")
+        self.limpar_campos_vendas_finalizar_periodo()
+        self.limpar_vendas_selecionadas()
         self.interface.vendas.limpar_campos_vendas_finalizar_periodo()
         self.interface.vendas.limpar_vendas_selecionadas()
-        # Restante do código para finalizar a venda
-
+        self.fechar_janela_resumo_venda()
+    
     def is_numero(self, valor):
         try:
             float(valor)
@@ -519,5 +571,3 @@ class Vendas:
             return True
         except ValueError:
             return False    
-
-        

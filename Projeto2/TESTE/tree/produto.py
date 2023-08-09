@@ -31,7 +31,8 @@ class Produto:
                     self.interface.tabela_produtos_cadastrados.delete(*self.interface.tabela_produtos_cadastrados.get_children())  # Limpar lista de produtos
                     self.exibir_produtos()  # Carregar novos dados de produtos
                     self.carrega_produtos_combobox() #carrega as combobox
-                    self.interface.vendas.carregar_produtos_combobox_venda()  # Atualizar a ComboBox de produtos na tela de vendas
+                    self.interface.vendas.exibir_itens_venda()  # Atualizar a ComboBox de produtos na tela de vendas
+                    self.interface.vendas.carregar_produtos_combobox_venda() # Atualizar a ComboBox de produtos na tela de vendas
                 else:
                     messagebox.showerror("Erro", "Valor e quantidade devem ser números.")
             else:
@@ -57,7 +58,7 @@ class Produto:
                     self.interface.label_cadastro_info_hora.config(text="")
                     self.interface.atualizar_tabela_produtos_cadastrados()  # Atualizar a tabela de produtos cadastrados
                     self.carrega_produtos_combobox()  # Carregar novos dados na combobox
-                    self.interface.vendas.carregar_produtos_combobox_venda()  # Atualizar a ComboBox de produtos na tela de vendas
+                    self.interface.vendas.atualizar_tabela_vendas()  # Atualizar a ComboBox de produtos na tela de vendas
                 else:
                     messagebox.showinfo("Exclusão Cancelada", "A exclusão do produto foi cancelada.")
             else:
@@ -122,6 +123,7 @@ class Produto:
                         self.interface.atualizar_tabela_produtos_cadastrados()  # Atualizar a tabela de produtos cadastrados
                         self.interface.vendas.carregar_produtos_combobox_venda()  # Atualizar a ComboBox de produtos na tela de vendas
                         self.carrega_produtos_combobox()
+                        #self.interface.vendas.adicionar_produto_venda()
                         
                     else:
                         messagebox.showerror("Erro", "Valor e quantidade devem ser números.")
