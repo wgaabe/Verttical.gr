@@ -144,7 +144,7 @@ class Vendas:
                             if venda_cortesia:
                                 produto_cortesia_existente = None
                                 for produto_cortesia in self.produtos_cortesia_selecionados:
-                                    if produto_cortesia["nome"] == produto_selecionado:
+                                    if produto_cortesia["ID"] == produto_id:
                                         produto_cortesia_existente = produto_cortesia
                                         break
 
@@ -153,6 +153,7 @@ class Vendas:
                                     produto_cortesia_existente["valor_total_produto"] = produto_cortesia_existente["valor_unitario"] * produto_cortesia_existente["quantidade"]
                                 else:
                                     novo_produto_cortesia = {
+                                        "ID": produto_id,
                                         "nome": produto_selecionado,
                                         "quantidade": quantidade_selecionada,
                                         "valor_unitario": valor_produto,
@@ -526,7 +527,6 @@ class Vendas:
         # Inserir os dados da venda na tabela Vendas
         venda_id = self.database.inserir_venda(data_venda, hora_venda, total_venda, periodo_id, tipo_pagamento)
 
-        print (venda_id)
         print ("passou")
        
         # Inserir os dados dos produtos vendidos na tabela Produtos
@@ -536,13 +536,14 @@ class Vendas:
             valor_unitario = produto["valor_unitario"]
             valor_total_produto = produto["valor_total_produto"]
             venda_cortesia = "Não"  # Produto não é de cortesia
+            print(produto)
             
             # Registra Itens Venda
             self.database.inserir_produto_itens_venda(venda_id, produto_id, quantidade, valor_unitario, valor_total_produto, venda_cortesia)
            
         # Inserir os dados dos produtos de cortesia na tabela Produtos
         for produto_cortesia in self.produtos_cortesia_selecionados:
-            #produto_id = produto_cortesia["ID"]
+            produto_id = produto_cortesia["ID"]
             quantidade = produto_cortesia["quantidade"]
             valor_unitario = produto_cortesia["valor_unitario"]
             valor_total_produto = produto_cortesia["valor_total_produto"]
