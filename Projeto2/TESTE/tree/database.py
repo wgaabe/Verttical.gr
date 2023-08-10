@@ -97,7 +97,7 @@ class Database:
                 print("Erro ao inserir produto:")
                 print(traceback.format_exc())
 
-    def obter_estoque_disponivel(self, nome_produto, periodo_id):
+    """ def obter_estoque_disponivel(self, nome_produto, periodo_id):
         produto_id = self.obter_id_produto(nome_produto, periodo_id)
         if produto_id:
             query = "SELECT quantidade FROM produtos WHERE id = ?"
@@ -106,7 +106,7 @@ class Database:
             if resultado:
                 estoque_disponivel = resultado[0]
                 return estoque_disponivel
-        return None            
+        return None  """           
 
     def obter_produtos_periodo(self, periodo_id):
         with self.lock:

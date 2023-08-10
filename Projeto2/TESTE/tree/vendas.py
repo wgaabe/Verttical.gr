@@ -19,6 +19,9 @@ class Vendas:
         self.interface = interface
         self.janela_qrcode = None  # Variável para armazenar a janela do QR Code do PIX
 
+    def identifica_periodo(self):
+        self.database.obter_periodo_aberto()
+
     def limpar_vendas_selecionadas(self):
         self.produtos_selecionados = []
         self.produtos_cortesia_selecionados = []
@@ -69,6 +72,63 @@ class Vendas:
                                             "O produto selecionado não foi encontrado na lista de produtos da venda.")
         else:
             messagebox.showwarning("Nenhum Produto Selecionado", "Selecione um produto na lista para excluir.")
+
+    def adicionar_quantidade(self):
+        selected_items = self.interface.tabela_vendas.selection()
+        if selected_items:
+            selected_item = selected_items[0]
+            produto_nome = self.interface.tabela_vendas.item(selected_item, "values")[0]
+            is_cortesia = "Sim" in self.interface.tabela_vendas.item(selected_item, "values")[2]
+
+            quantidade_na_tabela = self.obter_quantidade_na_venda(produto_nome, False) + self.obter_quantidade_na_venda(produto_nome, True)
+
+            produto_selecionado = None
+            if is_cortesia:
+                produtos_selecionados = self.produtos_cortesia_selecionados
+            else:
+                produtos_selecionados = self.produtos_selecionados
+
+            for produto in produtos_selecionados:
+                if produto["nome"] == produto_nome:
+                    produto_selecionado = produto
+                    break
+
+            if produto_selecionado:
+                periodo_aberto = self.database.obter_periodo_aberto()
+                if periodo_aberto:
+                    periodo_id = periodo_aberto[0]
+                    estoque_disponivel = self.database.obter_estoque_disponivel(produto_selecionado["ID"], periodo_id)
+                    quantidade_atual = produto_selecionado["quantidade"]
+                    quantidade_maxima_venda = estoque_disponivel - quantidade_na_tabela
+
+                    if quantidade_maxima_venda > 0:
+                        nova_quantidade = quantidade_atual + 1
+                        produto_selecionado["quantidade"] = nova_quantidade
+                        produto_selecionado["valor_total_produto"] = produto_selecionado["valor_unitario"] * nova_quantidade
+                        self.exibir_itens_venda()
+                        self.atualizar_total_venda()
+                    else:
+                        messagebox.showwarning("Quantidade Máxima Atingida", f"A quantidade máxima de produtos deste tipo já foi atingida.\n\n Disponível: {quantidade_maxima_venda}. \n Quantidade Total em venda: {quantidade_na_tabela}")
+                else:
+                    messagebox.showwarning("Período não Iniciado", "Não é possível adicionar produtos à venda pois não há período aberto. Inicie um período antes de adicionar produtos à venda.")
+            else:
+                messagebox.showwarning("Produto não Encontrado", "O produto selecionado não foi encontrado nas listas de produtos.")
+        else:
+            messagebox.showwarning("Nenhum Produto Selecionado", "Por favor, selecione um produto na tabela para adicionar quantidade.")
+
+
+
+    def obter_quantidade_na_venda(self, produto_nome, is_cortesia):
+        quantidade_total = 0
+        produtos_na_venda = self.produtos_cortesia_selecionados if is_cortesia else self.produtos_selecionados
+
+        for produto in produtos_na_venda:
+            if produto["nome"] == produto_nome:
+                quantidade_total += produto["quantidade"]
+
+        return quantidade_total
+
+
 
     def atualizar_total_venda(self):
         total_venda = 0
@@ -249,44 +309,6 @@ class Vendas:
 
         # Atualiza o valor total da venda após exibir os itens
         self.atualizar_total_venda()
-
-    def adicionar_quantidade(self):
-        selected_item = self.interface.tabela_vendas.selection()
-
-        if selected_item:
-            produto_id = self.interface.tabela_vendas.item(selected_item, "text")  # Obtém o ID do produto
-            quantidade_atual = int(self.interface.tabela_vendas.item(selected_item, "values")[1])
-
-            # Verifica se o produto está na lista de produtos selecionados
-            for produto in self.produtos_selecionados:
-                if produto["ID"] == produto_id:
-                    estoque_disponivel = self.database.obter_estoque_disponivel_do_produto(produto_id)
-
-                    if quantidade_atual < estoque_disponivel:
-                        nova_quantidade = quantidade_atual + 1
-                        self.interface.tabela_vendas.set(selected_item, column="Quantidade", value=nova_quantidade)
-                        produto["quantidade"] = nova_quantidade
-                    else:
-                        messagebox.showwarning("Estoque Insuficiente", "Não é possível adicionar mais produtos ao estoque.")
-                    return
-
-            # Verifica se o produto está na lista de produtos de cortesia selecionados
-            for produto_cortesia in self.produtos_cortesia_selecionados:
-                if produto_cortesia["ID"] == produto_id:
-                    estoque_disponivel = self.database.obter_estoque_disponivel_do_produto(produto_id)
-
-                    if quantidade_atual < estoque_disponivel:
-                        nova_quantidade = quantidade_atual + 1
-                        self.interface.tabela_vendas.set(selected_item, column="Quantidade", value=nova_quantidade)
-                        produto_cortesia["quantidade"] = nova_quantidade
-                    else:
-                        messagebox.showwarning("Estoque Insuficiente", "Não é possível adicionar mais produtos ao estoque.")
-                    return
-
-            messagebox.showwarning("Produto não Encontrado", "O produto selecionado não foi encontrado nas listas de produtos.")
-        else:
-            messagebox.showwarning("Produto não Selecionado", "Selecione um produto na tabela de vendas.")
-
 
     def carregar_produtos_combobox_venda(self):
         self.interface.combobox_produtos_venda['values'] = []
