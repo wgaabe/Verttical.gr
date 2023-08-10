@@ -116,8 +116,6 @@ class Vendas:
         else:
             messagebox.showwarning("Nenhum Produto Selecionado", "Por favor, selecione um produto na tabela para adicionar quantidade.")
 
-
-
     def obter_quantidade_na_venda(self, produto_nome, is_cortesia):
         quantidade_total = 0
         produtos_na_venda = self.produtos_cortesia_selecionados if is_cortesia else self.produtos_selecionados
@@ -127,6 +125,45 @@ class Vendas:
                 quantidade_total += produto["quantidade"]
 
         return quantidade_total
+
+    def remover_quantidade(self):
+        selected_items = self.interface.tabela_vendas.selection()
+        if selected_items:
+            selected_item = selected_items[0]
+            produto_nome = self.interface.tabela_vendas.item(selected_item, "values")[0]
+            is_cortesia = "Sim" in self.interface.tabela_vendas.item(selected_item, "values")[2]
+
+            quantidade_na_tabela = self.obter_quantidade_na_venda(produto_nome, False) + self.obter_quantidade_na_venda(produto_nome, True)
+
+            produto_selecionado = None
+            if is_cortesia:
+                produtos_selecionados = self.produtos_cortesia_selecionados
+            else:
+                produtos_selecionados = self.produtos_selecionados
+
+            for produto in produtos_selecionados:
+                if produto["nome"] == produto_nome:
+                    produto_selecionado = produto
+                    break
+
+            if produto_selecionado:
+                periodo_aberto = self.database.obter_periodo_aberto()
+                if periodo_aberto:
+                    quantidade_atual = produto_selecionado["quantidade"]
+                    if quantidade_atual > 1:
+                        nova_quantidade = quantidade_atual - 1
+                        produto_selecionado["quantidade"] = nova_quantidade
+                        produto_selecionado["valor_total_produto"] = produto_selecionado["valor_unitario"] * nova_quantidade
+                        self.exibir_itens_venda()
+                        self.atualizar_total_venda()
+                    else:
+                        messagebox.showwarning("Quantidade Mínima Atingida", "A quantidade mínima de produtos deste tipo já foi atingida (1).\n\n Se quiser remover, exclua o item da lista")
+                else:
+                    messagebox.showwarning("Período não Iniciado", "Não é possível remover produtos da venda pois não há período aberto. Inicie um período antes de remover produtos da venda.")
+            else:
+                messagebox.showwarning("Produto não Encontrado", "O produto selecionado não foi encontrado nas listas de produtos.")
+        else:
+            messagebox.showwarning("Nenhum Produto Selecionado", "Por favor, selecione um produto na tabela para remover quantidade.")
 
 
 

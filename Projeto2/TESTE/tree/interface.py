@@ -220,7 +220,7 @@ class Interface:
         botao_mais.grid(row=6, column=0, padx=10, pady=10)
 
         # Crie o botão "-" para diminuir o valor
-        botao_menos = tk.Button(frame_vendas, text="-", command=None, font=fonte_padrao,width=5)
+        botao_menos = tk.Button(frame_vendas, text="-", command=self.vendas.remover_quantidade, font=fonte_padrao,width=5)
         botao_menos.grid(row=6, column=1, padx=10, pady=5)
 
         #botão limpar lista, limpa todos os produtos adicionados
