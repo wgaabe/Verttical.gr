@@ -433,6 +433,7 @@ class Vendas:
 
     def registrar_venda(self):
         # Verificar se existem produtos selecionados para a venda
+        self.interface.fechar_teclado()
         if not self.produtos_selecionados and not self.produtos_cortesia_selecionados:
             messagebox.showwarning("Venda Inválida", "Não há produtos selecionados para a venda.")
             return
@@ -668,6 +669,7 @@ class Vendas:
         self.interface.vendas.limpar_campos_vendas_finalizar_periodo()
         self.interface.vendas.limpar_vendas_selecionadas()
         self.fechar_janela_resumo_venda()
+        self.fechar_janela_qrcode()
         self.interface.atualizar_tabela_produtos_cadastrados()
     
     def atualizar_quantidade_estoque(self, produto_id, quantidade):

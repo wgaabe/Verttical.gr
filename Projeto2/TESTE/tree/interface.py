@@ -21,10 +21,7 @@ class Interface:
         self.produto = Produto(self, self.controller)
         self.estrutura = Estrutura(self, self.controller)
         self.vendas = Vendas(self, self.controller)
-
         
-
-
     def fechar_programa(self):
         if messagebox.askokcancel("Fechar Programa", "Deseja realmente sair?"):
             self.janela.destroy()
@@ -49,8 +46,9 @@ class Interface:
         # Crie um estilo personalizado para a combobox
         style = ttk.Style()
         style.configure("Custom.TCombobox", font=fonte_padrao, fieldbackground="white", padding=5)  # Ajuste conforme necessário
-
-
+        self.teclado_aberto = False
+        self.teclado = None
+              
         self.venda_cortesia = tk.BooleanVar()  # Variável para venda cortesia (checkbox)
         self.venda_cortesia.set(False)  # Valor inicial da venda cortesia (não marcada)
 
@@ -142,7 +140,7 @@ class Interface:
         label_selecao.grid(row=3, column=0, padx=10, pady=5, sticky=tk.E)
 
         # Combobox de seleção de produto
-        self.combobox_produtos = ttk.Combobox(frame_edicao, state='readonly', font=fonte_padrao,style="Custom.TCombobox")
+        self.combobox_produtos = ttk.Combobox(frame_edicao, state='readonly', font=fonte_padrao, style="Custom.TCombobox")
         self.combobox_produtos.grid(row=3, column=1, padx=10, pady=5)
         self.combobox_produtos.bind("<<ComboboxSelected>>", self.produto.carregar_dados_produto)
 
@@ -189,15 +187,16 @@ class Interface:
         label_produtos_venda = tk.Label(frame_vendas, text="Selecionar Produto:", font=fonte_padrao)
         label_produtos_venda.grid(row=1, column=0, padx=10, pady=5, sticky=tk.W)
 
-        self.combobox_produtos_venda = ttk.Combobox(frame_vendas, state='readonly', font=fonte_padrao,style="Custom.TCombobox")
+        self.combobox_produtos_venda = ttk.Combobox(frame_vendas, state='readonly', font=fonte_padrao, style="Custom.TCombobox")
         self.combobox_produtos_venda.grid(row=1, column=1, padx=10, pady=5)
         self.combobox_produtos_venda.bind("<<ComboboxSelected>>", self.vendas.atualizar_quantidade_disponivel)
 
         label_quantidade_venda_label = tk.Label(frame_vendas, text="Quantidade:", font=fonte_padrao)
         label_quantidade_venda_label.grid(row=2, column=0, padx=10, pady=5, sticky=tk.W)
-
+        
         self.entry_quantidade_venda = tk.Entry(frame_vendas, font=fonte_padrao)
         self.entry_quantidade_venda.grid(row=2, column=1, padx=10, pady=5)
+        self.entry_quantidade_venda.bind("<Button-1>", self.abrir_teclado_numerico)
 
         # Campo de venda cortesia para registro de vendas
         style = ttk.Style()
@@ -261,7 +260,6 @@ class Interface:
         style.configure("Treeview", font=(16))  # Escolha a fonte e o tamanho desejados
         style.configure("Treeview.Heading", font=( 14))  # Escolha a fonte e o tamanho desejados para o cabeçalho
 
-        
         self.tabela_vendas["height"] = 7            #tamanho vertical da tabela
         self.tabela_vendas.heading("#0", text="ID")  # Coluna oculta para armazenar o índice do produto na lista
         self.tabela_vendas.heading("Produto", text="Produto")
@@ -339,7 +337,56 @@ class Interface:
         self.entry_quantidade_venda.delete(0, tk.END)
 
         self.vendas.atualizar_total_venda()  # Atualiza o valor total da venda na interface
-
+        
+    def abrir_teclado_numerico(self, event):
+        if not self.teclado_aberto:
+            self.teclado = tk.Toplevel(self.janela)
+            self.teclado.title("Teclado Numérico")
+            
+            for i in range(3):
+                for j in range(3):
+                    numero = i * 3 + j + 1
+                    botao = tk.Button(self.teclado, text=str(numero), font=("Helvetica", 16), width=5, height=2,
+                                      command=lambda num=numero: self.inserir_numero(num))
+                    botao.grid(row=i, column=j, padx=5, pady=5)
+            
+            botao_zero = tk.Button(self.teclado, text="0", font=("Helvetica", 16), width=5, height=2,
+                                   command=lambda: self.inserir_numero(0))
+            botao_zero.grid(row=3, column=1, padx=5, pady=5)
+            
+            botao_limpar = tk.Button(self.teclado, text="Limpar", font=("Helvetica", 12), width=6, height=2, fg="blue",
+                                     command=self.limpar_quantidade)
+            botao_limpar.grid(row=3, column=0, padx=5, pady=5)
+            
+            botao_fechar = tk.Button(self.teclado, text="X", font=("Helvetica", 18), width=4, height=1, bg="red", fg="white",
+                                     command=self.fechar_teclado)
+            botao_fechar.grid(row=3, column=2, padx=5, pady=5)
+            
+            # Posiciona a janela do teclado no canto inferior esquerdo da tela
+            x_position = 80
+            y_position = 600
+            self.teclado.geometry("+{}+{}".format(x_position, y_position))
+                       
+            self.teclado.protocol("WM_DELETE_WINDOW", self.fechar_teclado)            
+        else:
+            self.teclado.lift()  # Traz a janela do teclado numérico para frente
+        
+        self.teclado_aberto = True
+        
+    def fechar_teclado(self):
+        if self.teclado:
+            self.teclado.destroy()
+            self.teclado_aberto = False
+        
+    def inserir_numero(self, numero):
+        current_text = self.entry_quantidade_venda.get()
+        new_text = current_text + str(numero)
+        self.entry_quantidade_venda.delete(0, tk.END)
+        self.entry_quantidade_venda.insert(0, new_text)
+        
+    def limpar_quantidade(self):
+        self.entry_quantidade_venda.delete(0, tk.END)
+    
 if __name__ == "__main__":
     # Instanciação da interface e execução do programa
     interface = Interface()

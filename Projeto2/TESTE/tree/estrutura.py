@@ -70,6 +70,7 @@ class Estrutura:
                 messagebox.showinfo("Período Finalizado", "O período foi finalizado com sucesso!")
                 
                 self.controller.limpar_campos_vendas_finalizar_periodo()
+                self.interface.fechar_teclado()
 
                 self.clear_interface_values()
             else:
