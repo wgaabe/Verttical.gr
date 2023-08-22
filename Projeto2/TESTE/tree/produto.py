@@ -17,7 +17,7 @@ class Produto:
             nome = self.interface.entry_nome.get()
             valor = self.interface.entry_valor.get()
             quantidade = self.interface.entry_quantidade.get()
-            data_entrada = datetime.now().strftime("%d-%m-%Y")
+            data_entrada = datetime.now().strftime("%Y-%m-%d")
             hora_entrada = datetime.now().strftime("%H:%M:%S")
 
             if nome and valor and quantidade:

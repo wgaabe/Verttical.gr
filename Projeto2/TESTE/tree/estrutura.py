@@ -48,7 +48,7 @@ class Estrutura:
         else:
             opcao = messagebox.askquestion("Iniciar Período", "Deseja iniciar o período na data e hora atual?")
             if opcao == 'yes':
-                data_inicio = datetime.now().strftime("%d-%m-%Y")
+                data_inicio = datetime.now().strftime("%Y-%m-%d")
                 hora_inicio = datetime.now().strftime("%H:%M:%S")
                 self.database.inserir_periodo(data_inicio, hora_inicio)
                 messagebox.showinfo("Período Iniciado", "O período foi iniciado com sucesso!")
@@ -64,7 +64,7 @@ class Estrutura:
         else:
             opcao = messagebox.askquestion("Finalizar Período", "Deseja finalizar o período na data e hora atual?")
             if opcao == 'yes':
-                data_final = datetime.now().strftime("%d-%m-%Y")
+                data_final = datetime.now().strftime("%Y-%m-%d")
                 hora_final = datetime.now().strftime("%H:%M:%S")
                 self.database.atualizar_periodo(periodo_aberto[0], data_final, hora_final)
                 messagebox.showinfo("Período Finalizado", "O período foi finalizado com sucesso!")
@@ -116,7 +116,9 @@ class Estrutura:
         minuto_selecionado = spin_minuto.get()
         segundo_selecionado = spin_segundo.get()
 
-        data = data_selecionada.strftime("%d-%m-%Y")
+        #data = data_selecionada.strftime("%d-%m-%Y")
+        data = data_selecionada
+        print(data)
         hora = f"{hora_selecionada}:{minuto_selecionado}:{segundo_selecionado}"
         print(hora)
 
@@ -130,7 +132,7 @@ class Estrutura:
                 self.database.atualizar_periodo(periodo_id, data, hora)
                 messagebox.showinfo("Período Finalizado", "O período foi finalizado com sucesso!")
                 self.clear_interface_values()
-                self.controller.limpar_lista_vendas()
+                self.controller.limpar_campos_vendas_finalizar_periodo()
             else:
                 messagebox.showwarning("Período não Iniciado", "Não há período em aberto para finalizar.")
 

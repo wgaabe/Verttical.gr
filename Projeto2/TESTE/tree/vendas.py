@@ -615,7 +615,7 @@ class Vendas:
             messagebox.showwarning("Período não Iniciado", "Não há período em aberto. Inicie um período antes de cadastrar produtos.")
 
         # Obter a data e hora atual
-        data_venda = datetime.now().strftime("%d-%m-%Y")
+        data_venda = datetime.now().strftime("%Y-%m-%d")
         hora_venda = datetime.now().strftime("%H:%M:%S")
         #total Venda
         total_venda = sum(produto["valor_total_produto"] for produto in self.produtos_selecionados)
