@@ -5,6 +5,7 @@ from estrutura import Estrutura
 from controller import Controller
 from database import Database
 from vendas import Vendas  # Importar a classe Vendas
+from adm import Administracao
 
 class Interface:
     def __init__(self):
@@ -238,6 +239,13 @@ class Interface:
         self.botao_registrar_venda = tk.Button(frame_vendas, text="Registrar Venda", width=15, command=self.vendas.registrar_venda, font=fonte_padrao)
         self.botao_registrar_venda.grid(row=9, column=0, columnspan=2, padx=10, pady=10)
 
+         # Frame ADM
+        frame_adm = tk.Frame(frame_direita, highlightthickness=1, highlightbackground="blue")
+        frame_adm.grid(row=3, column=0, padx=10, pady=10)
+
+        botao_abrir_adm = tk.Button(frame_adm, text="Verttical", width=40, command=self.abrir_administracao, font=fonte_padrao)
+        botao_abrir_adm.grid(row=1, column=1, padx=10, pady=10)
+
         self.criar_tabela_vendas()
         self.criar_tabela_produtos_cadastrados()
 
@@ -386,7 +394,12 @@ class Interface:
         
     def limpar_quantidade(self):
         self.entry_quantidade_venda.delete(0, tk.END)
-    
+
+    def abrir_administracao(self):
+        root_admin = tk.Tk()  # Cria um novo objeto Tk para a janela de administração
+        app_admin = Administracao(root_admin)  # Cria a instância da classe Administracao
+        root_admin.mainloop()
+        
 if __name__ == "__main__":
     # Instanciação da interface e execução do programa
     interface = Interface()

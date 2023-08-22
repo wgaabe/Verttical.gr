@@ -1,0 +1,44 @@
+CREATE TABLE "Periodos" (
+	"ID"	INTEGER,
+	"DataInicio"	TEXT NOT NULL,
+	"HoraInicio"	TEXT NOT NULL,
+	"DataFim"	TEXT,
+	"HoraFim"	TEXT,
+	PRIMARY KEY("ID" AUTOINCREMENT)
+)
+CREATE TABLE Produtos (
+    ID INTEGER PRIMARY KEY AUTOINCREMENT,
+    Nome TEXT NOT NULL,
+    Valor REAL NOT NULL,
+    Quantidade INTEGER NOT NULL,
+    DataEntrada TEXT NOT NULL,
+    HoraEntrada TEXT NOT NULL,
+    PeriodoID INTEGER,
+    FOREIGN KEY (PeriodoID) REFERENCES Periodos(ID)
+)
+CREATE TABLE itens_venda (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    venda_id INTEGER NOT NULL,
+    produto_id INTEGER NOT NULL,
+    quantidade_venda INTEGER NOT NULL,
+    valor_unitario FLOAT NOT NULL,
+	valor_total_produto FLOAT NOT NULL,
+    venda_cortesia TEXT NOT NULL,
+    FOREIGN KEY (venda_id) REFERENCES vendas (id),
+    FOREIGN KEY (produto_id) REFERENCES produtos (id)
+)
+CREATE TABLE tipos_pagamentos (
+    id INT PRIMARY KEY,
+    nome VARCHAR(50) NOT NULL,
+    taxa_banco FLOAT
+)
+CREATE TABLE vendas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    data_venda DATE NOT NULL,
+    hora_venda TIME NOT NULL,
+    total_venda FLOAT NOT NULL,
+    periodo_id INTEGER NOT NULL,
+    tipo_pagamento_id INTEGER, -- Coluna para armazenar o ID do tipo de pagamento
+    FOREIGN KEY (periodo_id) REFERENCES periodos (id),
+    FOREIGN KEY (tipo_pagamento_id) REFERENCES tipos_pagamentos (id) -- Chave estrangeira para tipos_pagamentos
+)
