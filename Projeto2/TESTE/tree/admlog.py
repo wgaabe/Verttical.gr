@@ -1,103 +1,130 @@
-import sqlite3
-import threading
-import traceback
+import tkinter as tk
+from tkinter import ttk
+from tkinter import messagebox
+from tkinter import filedialog
+from admdata import admdata
+from tkcalendar import DateEntry
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+#from adm import Administracao
+    
 
-#pip install matplotlib
+class amdlog:
 
-class admlog:
-    def __init__(self):
-        self.conexao = None
-        self.cursor = None
-        self.lock = threading.Lock()
+    def __init__(self, adm):
+        self.adm = adm
+        self.admdata= admdata()
 
-    def conectar(self, nome_banco):
-        self.conexao = sqlite3.connect(nome_banco)
-        self.cursor = self.conexao.cursor()
+    def carregar_metodos_pagamento(self):
+            self.adm.listbox_metodos.delete(0, tk.END)
+            metodos_pagamento = self.admdata.obter_metodos_pagamento()
 
-    def abrir_conexao(self):
-        self.conectar('base/banco.db')
+            for metodo in metodos_pagamento:
+                self.adm.listbox_metodos.insert(tk.END, f"{metodo[0]} - {metodo[1]} - Taxa: {metodo[2]}")
+    
+    def cadastrar_metodo_pagamento(self):
+        cadastrar_window = tk.Toplevel()
+        cadastrar_window.title("Cadastrar Método de Pagamento")
 
-    def fechar_conexao(self):
-        if self.cursor:
-            self.cursor.close()
-        if self.conexao:
-            self.conexao.close()
+        width = 400
+        height = 250
+        x = (1920 - width) // 2
+        y = (1080 - height) // 2
 
-    def obter_periodos(self):
-        try:
-            self.abrir_conexao()
-            with self.conexao:
-                query = "SELECT * FROM Periodos"
-                self.cursor.execute(query)
-                periodos = self.cursor.fetchall()
-                return periodos
-        except sqlite3.Error as e:
-            print("Erro ao obter períodos:", e)
-        finally:
-            self.fechar_conexao()
-            
-    """        
-    def obter_periodos_entre_datas2(self, data_inicio_formatada, data_fim_formatada):
-        try:
-            self.abrir_conexao()
-            with self.conexao:
-                print("Data Início:", data_inicio_formatada)
-                print("Data Fim:", data_fim_formatada)
-                query = "SELECT * FROM Periodos WHERE DataInicio BETWEEN ? AND ?"
-                self.cursor.execute(query, (data_inicio_formatada, data_fim_formatada))
-                periodos = self.cursor.fetchall()
-                return periodos
-        except sqlite3.Error as e:
-            print("Erro ao obter períodos entre datas:", e)
-        finally:
-            self.fechar_conexao()
-    """
+        cadastrar_window.geometry(f"{width}x{height}+{x}+{y}")
 
-    def obter_periodos_entre_datas(self, data_inicio, data_fim):
-        try:
-            self.abrir_conexao()
-            with self.conexao:
-                print("Data Início:", data_inicio)
-                print("Data Fim:", data_fim)
-                query = "SELECT * FROM Periodos WHERE DataInicio BETWEEN ? AND ?"
-                self.cursor.execute(query, (data_inicio, data_fim))
-                periodos = self.cursor.fetchall()
-                return periodos
-        except sqlite3.Error as e:
-            print("Erro ao obter períodos entre datas:", e)
-        finally:
-            self.fechar_conexao()       
+        label_nome = ttk.Label(cadastrar_window, text="Nome do Método:")
+        label_nome.pack(padx=10, pady=5)
 
-    def obter_vendas_por_periodo(self, periodo_id):
-        try:
-            self.abrir_conexao()
-            with self.conexao:
-                query = "SELECT * FROM vendas WHERE periodo_id = ?"
-                self.cursor.execute(query, (periodo_id,))
-                vendas = self.cursor.fetchall()
-                return vendas
-        except sqlite3.Error as e:
-            print("Erro ao obter vendas por período:", e)
-        finally:
-            self.fechar_conexao()
+        entry_nome = ttk.Entry(cadastrar_window)
+        entry_nome.pack(padx=10, pady=5)
 
-    def obter_quantidade_vendas_por_hora(self, periodo_id):
-        try:
-            self.abrir_conexao()
-            with self.conexao:
-                query = """
-                    SELECT strftime('%H', hora_venda) as hora, COUNT(*) as quantidade
-                    FROM vendas
-                    WHERE periodo_id = ?
-                    GROUP BY hora
-                    ORDER BY hora
-                """
-                self.cursor.execute(query, (periodo_id,))
-                vendas_por_hora = self.cursor.fetchall()
-                vendas_por_hora_dict = {hora: quantidade for hora, quantidade in vendas_por_hora}
-                return vendas_por_hora_dict
-        except sqlite3.Error as e:
-            print("Erro ao obter quantidade de vendas por hora:", e)
-        finally:
-            self.fechar_conexao()    
-            
+        label_taxa = ttk.Label(cadastrar_window, text="Taxa do Banco (%):")
+        label_taxa.pack(padx=10, pady=5)
+
+        entry_taxa = ttk.Entry(cadastrar_window)
+        entry_taxa.pack(padx=10, pady=5)
+
+        def cadastrar():
+            nome_metodo = entry_nome.get()
+            taxa_banco = entry_taxa.get()
+
+            if nome_metodo and taxa_banco:
+                try:
+                    taxa_banco = float(taxa_banco)
+                    self.admdata.cadastrar_metodo_pagamento(nome_metodo, taxa_banco)
+                    messagebox.showinfo("Cadastro", "Método de pagamento cadastrado com sucesso.")
+                    self.carregar_metodos_pagamento()  # Atualiza a lista de métodos após o cadastro
+                    cadastrar_window.destroy()
+                except ValueError:
+                    messagebox.showerror("Erro", "Taxa do banco deve ser um número válido.")
+                except Exception as e:
+                    messagebox.showerror("Erro", f"Erro ao cadastrar método de pagamento: {str(e)}")
+
+        botao_cadastrar = ttk.Button(cadastrar_window, text="Cadastrar", command=cadastrar)
+        botao_cadastrar.pack(padx=10, pady=10)
+    def editar_metodo_pagamento(self):
+        # Implemente a função para editar um método de pagamento existente
+        pass
+    def excluir_metodo_pagamento(self):
+        # Implemente a função para excluir um método de pagamento
+        pass
+
+    def carregar_periodos(self):
+        data_inicio = self.adm.data_inicio.get_date()
+        data_fim = self.adm.data_fim.get_date()
+        print(data_fim)
+        print(data_inicio)
+
+        #data_inicio_formatada = data_inicio.strftime('%d-%m-%Y')
+        #data_fim_formatada = data_fim.strftime('%d-%m-%Y')
+
+        #periodos = self.admdata.obter_periodos_entre_datas(data_inicio_formatada, data_fim_formatada)
+        periodos = self.admdata.obter_periodos_entre_datas(data_inicio, data_fim)
+        
+        # Atualize a ComboBox com os períodos
+        self.adm.combobox_periodo.set("")
+        self.adm.combobox_periodo["values"] = periodos
+        
+        # Atualize a Label com a quantidade de registros
+        qtd_registros = len(periodos)
+        self.adm.label_qtd_registros.config(text=f"Quantidade de Registros: {qtd_registros}")
+
+    def gerar_relatorio(self):
+        tipo_relatorio = self.adm.combobox_tipo_relatorio.get()
+
+        if not self.adm.combobox_periodo.get():  # Verifica se o período não está vazio
+            messagebox.showerror("Erro", "Selecione um período antes de gerar o relatório.")
+            return
+
+        if tipo_relatorio == "Vendas por Hora":
+            relatorio = self.gerar_relatorio_vendas_por_hora()
+        elif tipo_relatorio == "Outro Tipo de Relatório":
+            relatorio = self.gerar_outro_tipo_de_relatorio()
+        else:
+            relatorio = "Tipo de relatório não suportado."
+
+    def gerar_relatorio_vendas_por_hora(self):
+        periodo_selecionado = self.adm.combobox_periodo.get()
+        periodo_id = int(periodo_selecionado.split()[0])  # Obtém o ID do período
+
+        vendas_por_hora = self.admdata.obter_quantidade_vendas_por_hora(periodo_id)
+        print(vendas_por_hora)
+        # Cria uma lista com todas as horas do período, incluindo a transição de um dia para outro
+        horas_do_periodo = [f"{i:02d}:00" for i in range(24)] + [f"{i:02d}:00" for i in range(24)]
+
+        quantidades = [vendas_por_hora.get(hora, 0) for hora in horas_do_periodo]  # Preenche quantidades com 0 se não houver vendas
+
+        # Criação do gráfico de barras
+        plt.bar(horas_do_periodo, quantidades)
+        plt.xlabel("Hora")
+        plt.ylabel("Quantidade de Vendas")
+        plt.title("Vendas por Hora")
+        plt.xticks(rotation=45)  # Rotaciona os rótulos do eixo x para melhor visualização
+
+        # Adiciona o valor da quantidade de vendas acima de cada barra
+        for i, v in enumerate(quantidades):
+            plt.text(i, v + 0.1, str(v), ha='center')
+
+        # Exibe o gráfico em uma janela do sistema
+        plt.show()

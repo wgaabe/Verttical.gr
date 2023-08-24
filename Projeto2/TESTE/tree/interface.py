@@ -49,6 +49,7 @@ class Interface:
         style.configure("Custom.TCombobox", font=fonte_padrao, fieldbackground="white", padding=5)  # Ajuste conforme necessário
         self.teclado_aberto = False
         self.teclado = None
+        self.admin_janela = None
               
         self.venda_cortesia = tk.BooleanVar()  # Variável para venda cortesia (checkbox)
         self.venda_cortesia.set(False)  # Valor inicial da venda cortesia (não marcada)
@@ -62,7 +63,7 @@ class Interface:
         panedwindow.add(frame_esquerda)
 
         # Frame do período
-        frame_periodo = tk.Frame(frame_esquerda, highlightthickness=1, highlightbackground="black")
+        frame_periodo = tk.LabelFrame(frame_esquerda, text="Perido", font=fonte_padrao)
         frame_periodo.grid(row=0, column=0, padx=10, pady=10)
 
         # Label status período
@@ -77,12 +78,12 @@ class Interface:
         botao_finalizar.grid(row=1, column=1, padx=10, pady=10)
 
         # Frame de cadastro de produtos
-        frame_cadastro = tk.Frame(frame_esquerda, highlightthickness=1, highlightbackground="black")
+        frame_cadastro = tk.LabelFrame(frame_esquerda, text="Cadastro de Produto", font=fonte_padrao)
         frame_cadastro.grid(row=1, column=0, padx=10, pady=10)
 
         # Campos de cadastro de produto
-        label_produtos = tk.Label(frame_cadastro, text="Cadastrar Produtos:", font=fonte_padrao)
-        label_produtos.grid(row=0, column=0, padx=10, pady=5, sticky=tk.W)
+        #label_produtos = tk.Label(frame_cadastro, text="Cadastrar Produtos:", font=fonte_padrao)
+        #label_produtos.grid(row=0, column=0, padx=10, pady=5, sticky=tk.W)
 
         label_nome = tk.Label(frame_cadastro, text="Nome:", font=fonte_padrao)
         label_nome.grid(row=1, column=0, padx=10, pady=5, sticky=tk.E)
@@ -121,11 +122,11 @@ class Interface:
         panedwindow.add(frame_direita)
 
          # Frame de edição de produtos
-        frame_edicao = tk.Frame(frame_direita, highlightthickness=1, highlightbackground="black")
+        frame_edicao = tk.LabelFrame(frame_direita, text="Edição de Produtos", font=fonte_padrao)
         frame_edicao.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W, columnspan=4)
 
         # Label "Edição de Produto"
-        label_edicao = tk.Label(frame_edicao, text="Edição de Produto:", font=fonte_padrao)
+        label_edicao = tk.Label(frame_edicao, text="Informações do produto:")
         label_edicao.grid(row=0, column=0, padx=10, pady=5, sticky=tk.E)
 
          # Label para exibir a data e a hora de cadastro
@@ -173,7 +174,7 @@ class Interface:
         self.botao_excluir.grid(row=7, column=0, padx=10, pady=10)
 
         # Frame de registro de vendas
-        frame_vendas = tk.Frame(frame_direita, highlightthickness=1, highlightbackground="black")
+        frame_vendas = tk.LabelFrame(frame_direita,text="Vendas", font=fonte_padrao)
         frame_vendas.grid(row=1, column=0, padx=10, pady=10, sticky=tk.W)
 
         # Label para exibir o nome do frame de registro de vendas
@@ -396,10 +397,20 @@ class Interface:
         self.entry_quantidade_venda.delete(0, tk.END)
 
     def abrir_administracao(self):
-        root_admin = tk.Tk()  # Cria um novo objeto Tk para a janela de administração
-        app_admin = Administracao(root_admin)  # Cria a instância da classe Administracao
-        root_admin.mainloop()
-        
+        if self.admin_janela:
+            if self.admin_janela.state() == 'normal':  # Verifique se a janela não está minimizada
+                self.admin_janela.lift()  # Traga a janela de administração para a frente
+            else:
+                self.admin_janela.state('normal')  # Restaure a janela se estiver minimizada
+        else:
+            self.admin_janela = tk.Toplevel(self.janela)  # Crie uma nova janela de administração
+            app_admin = Administracao(self.admin_janela)  # Crie a instância da classe Administracao
+            self.admin_janela.protocol("WM_DELETE_WINDOW", self.fechar_administracao)  # Lidar com o fechamento da janela
+
+    def fechar_administracao(self):
+        self.admin_janela.destroy()  # Fechar a janela de administração
+        self.admin_janela = None  # Reset da referência
+
 if __name__ == "__main__":
     # Instanciação da interface e execução do programa
     interface = Interface()
