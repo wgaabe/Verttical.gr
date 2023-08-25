@@ -5,7 +5,7 @@ from estrutura import Estrutura
 from controller import Controller
 from database import Database
 from vendas import Vendas  # Importar a classe Vendas
-from adm import Administracao
+from adm import adm
 
 class Interface:
     def __init__(self):
@@ -397,19 +397,15 @@ class Interface:
         self.entry_quantidade_venda.delete(0, tk.END)
 
     def abrir_administracao(self):
-        if self.admin_janela:
-            if self.admin_janela.state() == 'normal':  # Verifique se a janela não está minimizada
-                self.admin_janela.lift()  # Traga a janela de administração para a frente
-            else:
-                self.admin_janela.state('normal')  # Restaure a janela se estiver minimizada
+        if not self.admin_janela or not self.admin_janela.winfo_exists():
+            self.admin_janela = tk.Toplevel(self.janela)
+            app_admin = adm(self.admin_janela)
+            self.admin_janela.protocol("WM_DELETE_WINDOW", self.fechar_administracao)
         else:
-            self.admin_janela = tk.Toplevel(self.janela)  # Crie uma nova janela de administração
-            app_admin = Administracao(self.admin_janela)  # Crie a instância da classe Administracao
-            self.admin_janela.protocol("WM_DELETE_WINDOW", self.fechar_administracao)  # Lidar com o fechamento da janela
-
-    def fechar_administracao(self):
-        self.admin_janela.destroy()  # Fechar a janela de administração
-        self.admin_janela = None  # Reset da referência
+            if self.admin_janela.state() == 'normal':
+                self.admin_janela.lift()
+            else:
+                self.admin_janela.state('normal')
 
 if __name__ == "__main__":
     # Instanciação da interface e execução do programa
