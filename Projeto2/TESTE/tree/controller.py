@@ -16,7 +16,7 @@ class Controller:
 
     def limpar_campos_vendas_finalizar_periodo(self):
         self.interface.vendas.limpar_campos_vendas_finalizar_periodo()
-
+    """
     def showload_status_periodo(self):
         periodo_aberto = self.database.obter_periodo_aberto()
         if periodo_aberto:
@@ -37,7 +37,7 @@ class Controller:
                 produto_formatado = f"Nome: {nome}, Valor: {valor}, Quantidade: {quantidade}"
                 self.interface.lista_produtos.insert(tk.END, produto_formatado)
         self.interface.status_periodo_label.config(text=status_periodo)
-
+    
     def iniciar_periodo(self):
         periodo_aberto = self.database.obter_periodo_aberto()
         if periodo_aberto:
@@ -53,13 +53,13 @@ class Controller:
                 self.showload_status_periodo()  # Atualizar status do período na interface
             else:
                 self.abrir_janela_data_hora_manual(True)
-
+    """
     def obter_nomes_produtos(self, periodo_id):
         return self.database.obter_nomes_produtos(periodo_id)
     
     def obter_periodo_aberto(self):
         return self.database.obter_periodo_aberto()
-
+    """
     def finalizar_periodo(self):
         periodo_aberto = self.database.obter_periodo_aberto()
         if not periodo_aberto:
@@ -130,7 +130,7 @@ class Controller:
                 messagebox.showwarning("Período não Iniciado", "Não há período em aberto para finalizar.")
 
         janela.destroy()
-
+    """
     def registrar_venda(self, data_hora, produto, quantidade, valor_total, periodo_id, venda_cortesia, produto_id):
         self.database.registrar_venda(data_hora, produto, quantidade, valor_total, periodo_id, produto_id, venda_cortesia)
         # Atualizar outros dados ou interface, se necessário
@@ -162,7 +162,3 @@ class Controller:
     def obter_id_produto(self, nome_produto, periodo_id):
         return self.database.obter_id_produto(nome_produto, periodo_id)
     
-
-
-    # Outros métodos úteis, se necessário
-    # ...

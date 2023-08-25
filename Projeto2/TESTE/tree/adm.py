@@ -2,18 +2,15 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 from tkinter import filedialog
-from admdata import admdata
 from tkcalendar import DateEntry
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from admlog import amdlog
-from admcontroller import AdmController
 
-class Administracao:
-   def __init__(self, root):
-        self.admdata = admdata()
-        self.admlog = amdlog(self)
-
+class adm:
+    def __init__(self, root):
+        self.admlog = amdlog(self)  # Passando o treeview_metodos ao criar a instância do amdlog
+                
         style = ttk.Style()
         style.configure("Custom.TButton", font=("Helvetica", 12), padding=5)
         style.configure("Custom.TLabel", font=("Helvetica", 12))
@@ -26,6 +23,9 @@ class Administracao:
 
         self.frame_principal = ttk.Frame(self.root)
         self.frame_principal.pack(padx=20, pady=20, anchor="center")
+
+        self.fechar_button = ttk.Button(self.frame_principal, text="Fechar ADM", style="Custom.TButton", command=self.confirmar_fechar)
+        self.fechar_button.grid(row=0, column=2, padx=5, pady=5, sticky=tk.E)
 
         self.frame_filtros = tk.LabelFrame(self.frame_principal, text="Relatórios", font="Custom.TLabel")
         self.frame_filtros.grid(row=0, column=0, padx=10, pady=10, sticky="nw")
@@ -97,7 +97,24 @@ class Administracao:
         self.botao_excluir = ttk.Button(self.botao_frame, text="Excluir", command=self.admlog.excluir_metodo_pagamento, style="Custom.TButton")
         self.botao_excluir.pack(side=tk.TOP, padx=5, pady=2, fill=tk.X)
 
+        self.carrega_dados()
+
+    def confirmar_fechar(self):
+        resposta = messagebox.askyesno("Fechar ADM", "Deseja realmente fechar a tela de Administração?")
+        if resposta:
+            self.root.destroy()
+
+    def carrega_dados(self):
+        self.admlog = amdlog(self)
+        self.admlog.carregar_metodos_pagamento()  # Chama o método para carregar métodos de pagamento        
+
+    def editar_metodo_pagamento(self):
+        item_selecionado = self.treeview_metodos.selection()
+        self.admlog.editar_metodo_pagamento(item_selecionado)
+
+
+
 if __name__ == "__main__":
     root = tk.Tk()
-    app = Administracao(root)
+    app = adm(root)
     root.mainloop()

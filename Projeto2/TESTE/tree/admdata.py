@@ -36,23 +36,6 @@ class admdata:
         finally:
             self.fechar_conexao()
 
-    """        
-    def obter_periodos_entre_datas2(self, data_inicio_formatada, data_fim_formatada):
-        try:
-            self.abrir_conexao()
-            with self.conexao:
-                print("Data Início:", data_inicio_formatada)
-                print("Data Fim:", data_fim_formatada)
-                query = "SELECT * FROM Periodos WHERE DataInicio BETWEEN ? AND ?"
-                self.cursor.execute(query, (data_inicio_formatada, data_fim_formatada))
-                periodos = self.cursor.fetchall()
-                return periodos
-        except sqlite3.Error as e:
-            print("Erro ao obter períodos entre datas:", e)
-        finally:
-            self.fechar_conexao()
-    """
-    
     def obter_periodos_entre_datas(self, data_inicio, data_fim):
         try:
             self.abrir_conexao()
@@ -100,6 +83,20 @@ class admdata:
         finally:
             self.fechar_conexao()
 
+    def metodo_pagamento_existe(self, nome_metodo):
+        try:
+            self.abrir_conexao()
+            with self.conexao:
+                query = "SELECT COUNT(*) FROM tipos_pagamentos WHERE nome = ?"
+                self.cursor.execute(query, (nome_metodo,))
+                count = self.cursor.fetchone()[0]
+                return count > 0
+        except sqlite3.Error as e:
+            print("Erro ao verificar se o método de pagamento existe:", e)
+            return False
+        finally:
+            self.fechar_conexao()        
+
     def cadastrar_metodo_pagamento(self, nome, taxa):
         try:
             self.abrir_conexao()
@@ -110,5 +107,42 @@ class admdata:
         except sqlite3.Error as e:
             print("Erro ao cadastrar método de pagamento:", e)
         finally:
-            self.fechar_conexao()    
-            
+            self.fechar_conexao()   
+
+    def editar_taxa_metodo_pagamento(self, id_metodo, nova_taxa):
+        try:
+            self.abrir_conexao()
+            with self.conexao:
+                query = "UPDATE tipos_pagamentos SET taxa = ? WHERE id = ?"
+                self.cursor.execute(query, (nova_taxa, id_metodo))
+                self.conn.commit()
+                print("Taxa do método de pagamento atualizada com sucesso.")
+        except sqlite3.Error as e:
+            print("Erro ao editar taxa do método de pagamento:", e)
+        finally:
+            self.fechar_conexao()         
+
+    def excluir_metodo_pagamento(self, metodo_id):
+        try:
+            self.abrir_conexao()
+            with self.conexao:
+                query = "DELETE FROM tipos_pagamentos WHERE id = ?"
+                self.cursor.execute(query, (metodo_id,))
+                self.conexao.commit()
+        except sqlite3.Error as e:
+            print("Erro ao excluir método de pagamento:", e)
+        finally:
+            self.fechar_conexao()
+        
+    def obter_metodos_pagamento(self):
+        try:
+            self.abrir_conexao()
+            with self.conexao:
+                query = "SELECT * FROM tipos_pagamentos"
+                self.cursor.execute(query)
+                metodos_pagamento = self.cursor.fetchall()
+                return metodos_pagamento
+        except sqlite3.Error as e:
+            print("Erro ao obter métodos de pagamento:", e)
+        finally:
+            self.fechar_conexao()     
